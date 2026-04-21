@@ -1,3 +1,4 @@
+import { MaterialIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useRef, useState } from "react";
@@ -5,23 +6,26 @@ import {
   Alert,
   Platform,
   Pressable,
-  ScrollView,
+  SafeAreaView,
   StyleSheet,
+  Text,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { WebBadge } from "@/components/web-badge";
-import {
-  BottomTabInset,
-  Colors,
-  MaxContentWidth,
-  Spacing,
-} from "@/constants/theme";
-import { useTheme } from "@/hooks/use-theme";
+// Assuming you still want to log history
 import { addHistoryEntry } from "@/utils/tasbeeh-store";
+
+// Hardcoded Theme to match Library exactly
+const COLORS = {
+  background: "#0F1115",
+  card: "#16191E",
+  border: "#2C3033",
+  buttonBg: "#23272F",
+  accent: "#00E5FF",
+  textMain: "#FFFFFF",
+  textMuted: "#888888",
+  glowBg: "rgba(0, 229, 255, 0.1)",
+};
 
 function CircleProgressDisplay({
   count,
@@ -29,104 +33,17 @@ function CircleProgressDisplay({
   onPress,
   hapticEnabled,
   setNumber,
-}: {
-  count: number;
-  goal: number;
-  onPress?: () => void;
-  hapticEnabled?: boolean;
-  setNumber?: number;
-}) {
-  const theme = useTheme();
+}: any) {
   const progress = Math.min(count / goal, 1);
 
   const handlePress = async () => {
     if (hapticEnabled) {
       try {
-        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        // selectionAsync is vastly superior for Android fast-tapping.
+        // It provides a crisp "tick" instead of a muddy buzz.
+        await Haptics.selectionAsync();
       } catch (e) {
-        // Haptics not available on this platform
-      }
-    }
-    onPress?.();
-  };
-
-  return (
-    <Pressable
-      onPress={handlePress}
-      style={({ pressed }) => [pressed && { opacity: 0.9 }]}
-    >
-      <View
-        style={[styles.circleContainer, { backgroundColor: theme.background }]}
-      >
-        <View
-          style={[
-            styles.circleOuter,
-            {
-              borderColor: theme.backgroundElement,
-              backgroundColor: theme === Colors.dark ? "#1a1a1a" : "#ffffff",
-            },
-          ]}
-        >
-          <View
-            style={[
-              styles.circleProgress,
-              {
-                height: `${progress * 100}%`,
-                backgroundColor: "#004d4c",
-              },
-            ]}
-          />
-        </View>
-        {setNumber && (
-          <View style={styles.setIndicator}>
-            <ThemedText
-              type="smallBold"
-              style={[styles.setIndicatorText, { color: "#004d4c" }]}
-            >
-              x{setNumber}
-            </ThemedText>
-          </View>
-        )}
-        <View style={styles.circleCenterContent}>
-          <ThemedText
-            type="title"
-            style={[styles.counterNumber, { color: "#004d4c" }]}
-          >
-            {count}
-          </ThemedText>
-          <ThemedText
-            type="small"
-            themeColor="textSecondary"
-            style={styles.counterLabel}
-          >
-            Repetitions
-          </ThemedText>
-        </View>
-      </View>
-    </Pressable>
-  );
-}
-
-function IconButton({
-  label,
-  onPress,
-  variant = "default",
-  hapticEnabled = true,
-}: {
-  label: string;
-  onPress?: () => void;
-  variant?: "default" | "secondary" | "compact";
-  hapticEnabled?: boolean;
-}) {
-  const theme = useTheme();
-  const isCompact = variant === "compact";
-
-  const handlePress = async () => {
-    if (hapticEnabled) {
-      try {
-        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      } catch (e) {
-        // Haptics not available on this platform
+        // Haptics not available
       }
     }
     onPress?.();
@@ -136,21 +53,68 @@ function IconButton({
     <Pressable
       onPress={handlePress}
       style={({ pressed }) => [
-        styles.iconButtonPressable,
-        isCompact && styles.iconButtonPressableCompact,
-        pressed && styles.pressed,
+        styles.circleWrapper,
+        pressed && { transform: [{ scale: 0.98 }] }, // Subtle press animation
       ]}
     >
-      <ThemedView
-        type={
-          variant === "secondary" ? "backgroundSelected" : "backgroundElement"
-        }
-        style={[styles.iconButton, isCompact && styles.iconButtonCompact]}
-      >
-        <ThemedText type="smallBold" style={styles.iconButtonText}>
-          {label}
-        </ThemedText>
-      </ThemedView>
+      <View style={styles.circleOuter}>
+        {/* Fill Background */}
+        <View
+          style={[styles.circleProgress, { height: `${progress * 100}%` }]}
+        />
+
+        {/* Top Right Set Indicator */}
+        {setNumber && (
+          <View style={styles.setIndicator}>
+            <Text style={styles.setIndicatorText}>Set {setNumber}</Text>
+          </View>
+        )}
+
+        {/* Center Content */}
+        <View style={styles.circleCenterContent}>
+          <Text style={styles.counterNumber}>{count}</Text>
+          <Text style={styles.counterLabel}>REPS</Text>
+        </View>
+      </View>
+    </Pressable>
+  );
+}
+
+function IconButton({
+  icon,
+  label,
+  onPress,
+  variant = "default",
+  hapticEnabled = true,
+}: any) {
+  const handlePress = async () => {
+    if (hapticEnabled) {
+      try {
+        await Haptics.selectionAsync();
+      } catch (e) {}
+    }
+    onPress?.();
+  };
+
+  const isPrimary = variant === "primary";
+
+  return (
+    <Pressable
+      onPress={handlePress}
+      style={({ pressed }) => [
+        styles.iconButton,
+        isPrimary && styles.iconButtonPrimary,
+        pressed && { opacity: 0.7 },
+      ]}
+    >
+      <MaterialIcons
+        name={icon}
+        size={22}
+        color={isPrimary ? "#000" : COLORS.textMain}
+      />
+      <Text style={[styles.iconButtonText, isPrimary && { color: "#000" }]}>
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -166,19 +130,15 @@ export default function CounterScreen() {
   const [hapticEnabled, setHapticEnabled] = useState(true);
   const [currentSet, setCurrentSet] = useState(1);
   const [completedSets, setCompletedSets] = useState(0);
+
   const completionLockRef = useRef(false);
+
   const parsedGoal = params.tasbeehGoal
     ? Number.parseInt(params.tasbeehGoal, 10)
     : NaN;
   const goal = Number.isFinite(parsedGoal) && parsedGoal > 0 ? parsedGoal : 100;
   const tasbeehName = params.tasbeehName || "SubhanAllah";
   const totalSets = 5;
-  const safeAreaInsets = useSafeAreaInsets();
-  const insets = {
-    ...safeAreaInsets,
-    bottom: safeAreaInsets.bottom + BottomTabInset + Spacing.three,
-  };
-  const theme = useTheme();
 
   const addToHistory = async (eventType: "manual-reset" | "goal-complete") => {
     try {
@@ -205,30 +165,19 @@ export default function CounterScreen() {
 
     // Check if goal is reached
     if (newCount >= goal) {
-      completionLockRef.current = true;
+      completionLockRef.current = true; // Lock immediately to prevent double taps
 
       try {
-        await addHistoryEntry({
-          tasbeehName,
-          goal,
-          countAtEvent: newCount,
-          currentSet,
-          completedSets: completedSets + 1,
-          eventType: "goal-complete",
-        });
-      } catch {
-        // Non-blocking storage failure
-      }
+        await addToHistory("goal-complete");
+      } catch {}
 
-      // Play success haptic
+      // Play success haptic (A stronger buzz for completion)
       if (hapticEnabled) {
         try {
           await Haptics.notificationAsync(
             Haptics.NotificationFeedbackType.Success,
           );
-        } catch (e) {
-          // Haptics not available
-        }
+        } catch (e) {}
       }
 
       // Auto-reset after brief delay for visual feedback
@@ -236,8 +185,8 @@ export default function CounterScreen() {
         setCount(0);
         setCompletedSets((prev) => prev + 1);
         setCurrentSet((prev) => (prev < totalSets ? prev + 1 : 1));
-        completionLockRef.current = false;
-      }, 600);
+        completionLockRef.current = false; // Unlock
+      }, 700);
     }
   };
 
@@ -246,13 +195,10 @@ export default function CounterScreen() {
       "Reset Counter",
       "Are you sure you want to reset the current set?",
       [
+        { text: "Cancel", style: "cancel" },
         {
-          text: "Cancel",
-          onPress: () => {},
-          style: "cancel",
-        },
-        {
-          text: "Reset Set",
+          text: "Reset",
+          style: "destructive",
           onPress: async () => {
             completionLockRef.current = false;
             if (count > 0) {
@@ -266,12 +212,9 @@ export default function CounterScreen() {
                 await Haptics.notificationAsync(
                   Haptics.NotificationFeedbackType.Warning,
                 );
-              } catch (e) {
-                // Haptics not available
-              }
+              } catch (e) {}
             }
           },
-          style: "destructive",
         },
       ],
     );
@@ -279,269 +222,232 @@ export default function CounterScreen() {
 
   const handleHapticToggle = async () => {
     setHapticEnabled((prev) => !prev);
-    if (!hapticEnabled) {
-      try {
-        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      } catch (e) {
-        // Haptics not available
-      }
-    }
+    try {
+      await Haptics.selectionAsync();
+    } catch (e) {}
   };
 
-  const contentPlatformStyle = Platform.select({
-    android: {
-      paddingTop: insets.top,
-      paddingLeft: insets.left,
-      paddingRight: insets.right,
-      paddingBottom: insets.bottom,
-    },
-    web: {
-      paddingTop: Spacing.six,
-      paddingBottom: Spacing.four,
-    },
-    default: {
-      paddingTop: insets.top,
-      paddingLeft: insets.left,
-      paddingRight: insets.right,
-      paddingBottom: insets.bottom,
-    },
-  });
-
   return (
-    <ScrollView
-      style={[styles.scrollView, { backgroundColor: theme.background }]}
-      contentInset={insets}
-      contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}
-    >
-      <ThemedView style={styles.wrapper}>
-        {/* Header Text */}
-        <View style={styles.headerSection}>
-          <ThemedText
-            type="small"
-            themeColor="textSecondary"
-            style={styles.upperLabel}
-          >
-            CURRENT FOCUS
-          </ThemedText>
-          <ThemedText
-            type="subtitle"
-            style={[styles.mainTitle, { color: "#004d4c" }]}
-          >
-            {tasbeehName}
-          </ThemedText>
-          <ThemedText
-            type="small"
-            themeColor="textSecondary"
-            style={styles.subtitle}
-          >
-            Glory be to Allah
-          </ThemedText>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.headerSection}>
+        <View style={styles.topBar}>
+          <View style={{ width: 24 }} /> {/* Spacer to center title */}
+          <Text style={styles.upperLabel}>CURRENT FOCUS</Text>
+          <View style={{ width: 24 }} /> {/* Spacer to center title */}
         </View>
 
-        {/* Main Circular Counter */}
-        <View style={styles.centerDisplay}>
-          <CircleProgressDisplay
-            count={count}
-            goal={goal}
-            onPress={handleIncrement}
-            hapticEnabled={hapticEnabled}
-            setNumber={currentSet}
-          />
-        </View>
+        <Text style={styles.mainTitle} numberOfLines={1} adjustsFontSizeToFit>
+          {tasbeehName}
+        </Text>
+        <Text style={styles.subtitle}>Glory be to Allah</Text>
+      </View>
 
-        {/* Haptic & Goal Row */}
-        <Pressable
-          onPress={handleHapticToggle}
-          style={({ pressed }) => [pressed && { opacity: 0.7 }]}
-        >
-          <View style={styles.controlRow}>
-            <View style={styles.controlItem}>
-              <ThemedText type="small" themeColor="textSecondary">
-                {hapticEnabled ? "✓" : "✗"} Haptic{" "}
-                {hapticEnabled ? "On" : "Off"}
-              </ThemedText>
-            </View>
-            <View style={styles.divider} />
-            <View style={styles.controlItem}>
-              <ThemedText type="small" themeColor="textSecondary">
-                Goal: {goal}
-              </ThemedText>
-            </View>
+      <View style={styles.centerDisplay}>
+        <CircleProgressDisplay
+          count={count}
+          goal={goal}
+          onPress={handleIncrement}
+          hapticEnabled={hapticEnabled}
+          setNumber={currentSet}
+        />
+      </View>
+
+      <View style={styles.bottomSection}>
+        {/* Settings / Info Row */}
+        <View style={styles.infoRow}>
+          <Pressable onPress={handleHapticToggle} style={styles.infoPill}>
+            <MaterialIcons
+              name={hapticEnabled ? "vibration" : "smartphone"}
+              size={16}
+              color={hapticEnabled ? COLORS.accent : COLORS.textMuted}
+            />
+            <Text
+              style={[
+                styles.infoText,
+                hapticEnabled && { color: COLORS.accent },
+              ]}
+            >
+              Haptics {hapticEnabled ? "On" : "Off"}
+            </Text>
+          </Pressable>
+
+          <View style={styles.infoPill}>
+            <MaterialIcons
+              name="track-changes"
+              size={16}
+              color={COLORS.textMuted}
+            />
+            <Text style={styles.infoText}>Target: {goal}</Text>
           </View>
-        </Pressable>
+        </View>
 
         {/* Action Buttons */}
         <View style={styles.actionButtonsRow}>
           <IconButton
-            label="↺ Reset"
-            variant="default"
+            icon="refresh"
+            label="Reset"
             onPress={handleReset}
             hapticEnabled={hapticEnabled}
           />
           <IconButton
-            label="✎ Edit"
-            variant="secondary"
-            onPress={() => router.push("/library")}
-            hapticEnabled={hapticEnabled}
-          />
-          <IconButton
-            label="His"
-            variant="default"
-            onPress={() => router.push("/history")}
+            icon="open-in-full"
+            label="Full Screen"
+            variant="primary"
+            onPress={() => router.push("/fullscreen-counter")}
             hapticEnabled={hapticEnabled}
           />
         </View>
-
-        {Platform.OS === "web" && <WebBadge />}
-      </ThemedView>
-    </ScrollView>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollView: {
+  container: {
     flex: 1,
+    backgroundColor: COLORS.background,
+    justifyContent: "space-between",
+    paddingBottom: Platform.OS === "android" ? 20 : 0,
   },
-  contentContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-  },
-  wrapper: {
-    maxWidth: MaxContentWidth,
-    flexGrow: 1,
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.five,
-    gap: Spacing.five,
-  },
+
   /* Header Section */
   headerSection: {
     alignItems: "center",
-    gap: Spacing.one,
-    marginBottom: Spacing.two,
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === "android" ? 40 : 10,
+  },
+  topBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+    marginBottom: 15,
   },
   upperLabel: {
-    fontSize: 11,
-    fontWeight: "600",
-    letterSpacing: 1.5,
-    textTransform: "uppercase",
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 2,
+    color: COLORS.accent,
   },
   mainTitle: {
-    fontSize: 32,
-    fontWeight: "700",
-    marginVertical: Spacing.one,
+    fontSize: 38,
+    fontWeight: "bold",
+    color: COLORS.textMain,
+    textAlign: "center",
   },
   subtitle: {
-    fontSize: 14,
-    fontStyle: "italic",
+    fontSize: 16,
+    color: COLORS.textMuted,
+    marginTop: 5,
   },
+
   /* Circular Display */
   centerDisplay: {
     alignItems: "center",
     justifyContent: "center",
-    marginVertical: Spacing.five,
+    flex: 1,
   },
-  circleContainer: {
-    position: "relative",
+  circleWrapper: {
     alignItems: "center",
     justifyContent: "center",
   },
   circleOuter: {
-    width: 260,
-    height: 260,
-    borderRadius: 130,
-    borderWidth: 6,
-    position: "relative",
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    backgroundColor: COLORS.card,
+    borderWidth: 0,
+    // borderColor: COLORS.border,
     overflow: "hidden",
     alignItems: "center",
-    justifyContent: "flex-end",
+    justifyContent: "center",
+    elevation: 50,
+    shadowColor: COLORS.accent,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
   },
   circleProgress: {
     position: "absolute",
     bottom: 0,
     width: "100%",
-    borderTopLeftRadius: 130,
-    borderTopRightRadius: 130,
-  },
-  circleCenterContent: {
-    position: "absolute",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: "rgba(0, 229, 255, 0.15)", // Subtle fill color
   },
   setIndicator: {
     position: "absolute",
-    top: Spacing.three,
-    right: Spacing.three,
-    backgroundColor: "rgba(0, 77, 76, 0.1)",
-    paddingVertical: Spacing.one,
-    paddingHorizontal: Spacing.two,
-    borderRadius: Spacing.two,
+    top: 25,
+    backgroundColor: COLORS.glowBg,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
   },
   setIndicatorText: {
     fontSize: 12,
     fontWeight: "700",
-    letterSpacing: 0.5,
+    color: COLORS.accent,
+  },
+  circleCenterContent: {
+    alignItems: "center",
+    justifyContent: "center",
   },
   counterNumber: {
-    fontSize: 72,
-    fontWeight: "700",
-    lineHeight: 80,
+    fontSize: 84,
+    fontWeight: "bold",
+    color: COLORS.accent,
+    lineHeight: 90,
   },
   counterLabel: {
-    fontSize: 10,
-    letterSpacing: 1.2,
-    textTransform: "uppercase",
-    marginTop: Spacing.two,
+    fontSize: 12,
+    letterSpacing: 2,
+    color: COLORS.textMain,
+    marginTop: 5,
   },
-  /* Control Row */
-  controlRow: {
+
+  /* Bottom Controls */
+  bottomSection: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    gap: 25,
+  },
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 15,
+  },
+  infoPill: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: Spacing.three,
-    gap: Spacing.three,
+    backgroundColor: COLORS.card,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    gap: 6,
   },
-  controlItem: {
-    alignItems: "center",
-    justifyContent: "center",
+  infoText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: COLORS.textMuted,
   },
-  divider: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: "#d4d4d4",
-  },
-  /* Action Buttons */
   actionButtonsRow: {
     flexDirection: "row",
-    gap: Spacing.two,
-    justifyContent: "center",
-  },
-  iconButtonPressable: {
-    flex: 1,
-  },
-  iconButtonPressableCompact: {
-    flex: 0,
+    gap: 12,
   },
   iconButton: {
-    borderRadius: 40,
-    paddingVertical: Spacing.three,
-    paddingHorizontal: Spacing.four,
+    flex: 1,
+    flexDirection: "row",
+    backgroundColor: COLORS.buttonBg,
+    borderRadius: 16,
+    paddingVertical: 15,
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 50,
+    gap: 8,
   },
-  iconButtonCompact: {
-    borderRadius: 28,
-    width: 56,
-    height: 56,
-    paddingVertical: 0,
-    paddingHorizontal: 0,
+  iconButtonPrimary: {
+    backgroundColor: COLORS.accent,
   },
   iconButtonText: {
     fontSize: 14,
-    fontWeight: "600",
-  },
-  pressed: {
-    opacity: 0.7,
+    fontWeight: "700",
+    color: COLORS.textMain,
   },
 });

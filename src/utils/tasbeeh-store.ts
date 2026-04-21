@@ -85,7 +85,9 @@ export async function getCustomTasbeehItems(): Promise<TasbeehItem[]> {
   }));
 }
 
-export async function saveCustomTasbeehItems(items: TasbeehItem[]): Promise<void> {
+export async function saveCustomTasbeehItems(
+  items: TasbeehItem[],
+): Promise<void> {
   await initDb();
   const db = await getDb();
 

@@ -1,651 +1,538 @@
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
-  Alert,
-  FlatList,
-  Modal,
   Platform,
   Pressable,
+  SafeAreaView,
+  ScrollView,
   StyleSheet,
+  Text,
   TextInput,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
-import { useTheme } from "@/hooks/use-theme";
-import {
-  getCustomTasbeehItems,
-  saveCustomTasbeehItems,
-  type TasbeehItem,
-} from "@/utils/tasbeeh-store";
 
-const DEFAULT_TASBEEH: TasbeehItem[] = [
-  { id: "1", name: "SubhanAllah", goal: 100, isDefault: true },
-  { id: "2", name: "Alhamdulillah", goal: 100, isDefault: true },
-  { id: "3", name: "Allahu Akbar", goal: 100, isDefault: true },
-  { id: "4", name: "Astaghfirullah", goal: 100, isDefault: true },
+// Cleaned Data Structure
+const INITIAL_TASBEEH_DATA = [
+  {
+    id: "1",
+    title: "SubhanAllah",
+    arabic: "سُبْحَانَ اللَّهِ",
+    translation: "Glory be to Allah",
+    count: "33",
+  },
+  {
+    id: "2",
+    title: "Alhamdulillah",
+    arabic: "ٱلْحَمْدُ لِلَّٰهِ",
+    translation: "Praise be to Allah",
+    count: "99",
+  },
+  {
+    id: "3",
+    title: "Allahu Akbar",
+    arabic: "ٱللَّٰهُ أَكْبَرُ",
+    translation: "Allah is the Greatest",
+    count: "33",
+  },
+  {
+    id: "4",
+    title: "Astaghfirullah",
+    arabic: "أَسْتَغْفِرُ اللَّهَ",
+    translation: "I seek forgiveness",
+    count: "100",
+  },
 ];
 
-function TasbeehCard({
-  item,
-  onPress,
-  onEdit,
-  onDelete,
-  selected,
-}: {
-  item: TasbeehItem;
-  onPress: (item: TasbeehItem) => void;
-  onEdit: (item: TasbeehItem) => void;
-  onDelete: (id: string) => void;
-  selected: boolean;
-}) {
-  const theme = useTheme();
-
-  return (
-    <Pressable
-      onPress={() => onPress(item)}
-      style={({ pressed }) => [pressed && { opacity: 0.8 }]}
-    >
-      <ThemedView
-        type={selected ? "backgroundSelected" : "backgroundElement"}
-        style={[
-          styles.card,
-          selected && { backgroundColor: "#004d4c", borderWidth: 0 },
-        ]}
-      >
-        <View style={styles.cardContent}>
-          <ThemedText
-            type="smallBold"
-            style={[
-              styles.cardName,
-              { color: selected ? "#ffffff" : "#004d4c" },
-            ]}
-          >
-            {item.name}
-          </ThemedText>
-          <ThemedText
-            type="small"
-            themeColor="textSecondary"
-            style={[styles.goalText, selected && { color: "#e0e0e0" }]}
-          >
-            Goal: {item.goal}
-          </ThemedText>
-        </View>
-        <View style={styles.cardActions}>
-          {selected && (
-            <ThemedText
-              type="smallBold"
-              style={[styles.selectedBadge, { color: "#ffffff" }]}
-            >
-              ✓
-            </ThemedText>
-          )}
-          {!item.isDefault && (
-            <>
-              <Pressable
-                onPress={(event) => {
-                  event.stopPropagation();
-                  onEdit(item);
-                }}
-                style={({ pressed }) => [
-                  pressed && { opacity: 0.6 },
-                  { padding: Spacing.one },
-                ]}
-              >
-                <ThemedText
-                  type="smallBold"
-                  style={[styles.editButton, selected && { color: "#c9fff6" }]}
-                >
-                  Edit
-                </ThemedText>
-              </Pressable>
-              <Pressable
-                onPress={(event) => {
-                  event.stopPropagation();
-                  Alert.alert("Delete", "Remove this tasbeeh?", [
-                    { text: "Cancel", style: "cancel" },
-                    {
-                      text: "Delete",
-                      onPress: () => onDelete(item.id),
-                      style: "destructive",
-                    },
-                  ]);
-                }}
-                style={({ pressed }) => [
-                  pressed && { opacity: 0.6 },
-                  { padding: Spacing.one },
-                ]}
-              >
-                <ThemedText
-                  type="smallBold"
-                  style={[
-                    styles.deleteButton,
-                    selected && { color: "#ff8c8c" },
-                  ]}
-                >
-                  Del
-                </ThemedText>
-              </Pressable>
-            </>
-          )}
-        </View>
-      </ThemedView>
-    </Pressable>
-  );
-}
-
-function CustomizeModal({
-  visible,
-  onClose,
-  item,
-  onSave,
-  title,
-  submitLabel,
-  editable = true,
-}: {
-  visible: boolean;
-  onClose: () => void;
-  item?: TasbeehItem;
-  onSave: (name: string, goal: number) => void;
-  title: string;
-  submitLabel: string;
-  editable?: boolean;
-}) {
-  const [name, setName] = useState(item?.name || "");
-  const [goal, setGoal] = useState(item?.goal.toString() || "100");
-  const theme = useTheme();
-
-  useEffect(() => {
-    if (!visible) {
-      return;
-    }
-
-    setName(item?.name || "");
-    setGoal(item?.goal?.toString() || "100");
-  }, [item, visible]);
-
-  const handleSave = () => {
-    if (!name.trim()) {
-      Alert.alert("Error", "Please enter a name");
-      return;
-    }
-    const goalNum = parseInt(goal, 10);
-    if (!goalNum || goalNum <= 0) {
-      Alert.alert("Error", "Please enter a valid goal");
-      return;
-    }
-    onSave(name, goalNum);
-    setName("");
-    setGoal("100");
-  };
-
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-    >
-      <View style={styles.modalOverlay}>
-        <ThemedView style={styles.modalContent}>
-          <ThemedText type="subtitle" style={styles.modalTitle}>
-            {title}
-          </ThemedText>
-
-          <View style={styles.formGroup}>
-            <ThemedText type="small" style={styles.label}>
-              Name
-            </ThemedText>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  color: theme.text,
-                  backgroundColor: theme.backgroundElement,
-                  borderColor: theme.backgroundSelected,
-                },
-              ]}
-              placeholder="e.g., Custom Salawat"
-              placeholderTextColor={theme.textSecondary}
-              value={name}
-              onChangeText={setName}
-              editable={editable}
-            />
-          </View>
-
-          <View style={styles.formGroup}>
-            <ThemedText type="small" style={styles.label}>
-              Target Goal
-            </ThemedText>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  color: theme.text,
-                  backgroundColor: theme.backgroundElement,
-                  borderColor: theme.backgroundSelected,
-                },
-              ]}
-              placeholder="e.g., 100, 313, 1000"
-              placeholderTextColor={theme.textSecondary}
-              value={goal}
-              onChangeText={setGoal}
-              keyboardType="number-pad"
-              editable={editable}
-            />
-          </View>
-
-          <View style={styles.modalButtons}>
-            <Pressable
-              onPress={onClose}
-              style={({ pressed }) => [
-                styles.modalButton,
-                pressed && { opacity: 0.7 },
-              ]}
-            >
-              <ThemedView
-                type="backgroundElement"
-                style={styles.modalButtonInner}
-              >
-                <ThemedText type="smallBold" style={styles.buttonLabel}>
-                  Cancel
-                </ThemedText>
-              </ThemedView>
-            </Pressable>
-            <Pressable
-              onPress={handleSave}
-              style={({ pressed }) => [
-                styles.modalButton,
-                pressed && { opacity: 0.7 },
-              ]}
-            >
-              <View
-                style={[
-                  styles.modalButtonInner,
-                  { backgroundColor: "#004d4c" },
-                ]}
-              >
-                <ThemedText type="smallBold" style={styles.buttonLabelLight}>
-                  {submitLabel}
-                </ThemedText>
-              </View>
-            </Pressable>
-          </View>
-        </ThemedView>
-      </View>
-    </Modal>
-  );
-}
+// Hardcoded Theme
+const COLORS = {
+  background: "#0F1115",
+  card: "#16191E",
+  border: "#2C3033",
+  buttonBg: "#23272F",
+  accent: "#00E5FF",
+  textMain: "#FFFFFF",
+  textMuted: "#888888",
+  glowBg: "rgba(0, 229, 255, 0.1)",
+};
 
 export default function LibraryScreen() {
   const router = useRouter();
-  const [tasbeehList, setTasbeehList] = useState<TasbeehItem[]>([]);
-  const [selectedId, setSelectedId] = useState<string>("1");
-  const [createModalVisible, setCreateModalVisible] = useState(false);
-  const [editModalVisible, setEditModalVisible] = useState(false);
-  const [editingItem, setEditingItem] = useState<TasbeehItem | undefined>();
-  const theme = useTheme();
 
-  useEffect(() => {
-    let isMounted = true;
+  // State Management
+  const [tasbeehList, setTasbeehList] = useState(INITIAL_TASBEEH_DATA);
+  const [searchQuery, setSearchQuery] = useState("");
 
-    const loadLibrary = async () => {
-      try {
-        const customItems = await getCustomTasbeehItems();
-        if (isMounted) {
-          setTasbeehList([...DEFAULT_TASBEEH, ...customItems]);
-        }
-      } catch {
-        if (isMounted) {
-          setTasbeehList(DEFAULT_TASBEEH);
-        }
-      }
-    };
+  // Inline Form State
+  const [isFormVisible, setIsFormVisible] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [newTitle, setNewTitle] = useState("");
+  const [newCount, setNewCount] = useState("");
 
-    loadLibrary();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const safeAreaInsets = useSafeAreaInsets();
-  const insets = {
-    ...safeAreaInsets,
-    bottom: safeAreaInsets.bottom + BottomTabInset + Spacing.three,
-  };
-
-  const contentPlatformStyle = Platform.select({
-    android: {
-      paddingTop: insets.top + Spacing.four,
-      paddingLeft: insets.left,
-      paddingRight: insets.right,
-      paddingBottom: insets.bottom,
-    },
-    web: {
-      paddingTop: Spacing.six,
-      paddingBottom: Spacing.four,
-    },
-    default: {
-      paddingTop: insets.top + Spacing.four,
-      paddingLeft: insets.left,
-      paddingRight: insets.right,
-      paddingBottom: insets.bottom,
-    },
-  });
-
-  const handleCardPress = (item: TasbeehItem) => {
-    setSelectedId(item.id);
+  // Handlers
+  const handleStartJourney = (item: any) => {
     router.push({
-      pathname: "/counter",
+      pathname: "/counter", // Ensure this matches your actual counter screen file name
       params: {
-        tasbeehName: item.name,
-        tasbeehGoal: item.goal.toString(),
+        tasbeehName: item.title,
+        tasbeehGoal: String(item.count),
       },
     });
   };
 
-  const handleCreateTasbeeh = async (name: string, goal: number) => {
-    const newItem: TasbeehItem = {
-      id: Date.now().toString(),
-      name,
-      goal,
-      isDefault: false,
-    };
-
-    const updatedList = [...tasbeehList, newItem];
-    setTasbeehList(updatedList);
-    setSelectedId(newItem.id);
-    setCreateModalVisible(false);
-
-    try {
-      await saveCustomTasbeehItems(
-        updatedList.filter((item) => !item.isDefault),
-      );
-    } catch {
-      Alert.alert("Save failed", "Could not save tasbeeh. Please try again.");
-    }
+  const handleDelete = (id: string) => {
+    setTasbeehList((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const handleDeleteTasbeeh = async (id: string) => {
-    const updatedList = tasbeehList.filter((item) => item.id !== id);
-    setTasbeehList(updatedList);
-
-    if (selectedId === id) {
-      setSelectedId(DEFAULT_TASBEEH[0].id);
-    }
-
-    try {
-      await saveCustomTasbeehItems(
-        updatedList.filter((item) => !item.isDefault),
-      );
-    } catch {
-      Alert.alert(
-        "Delete failed",
-        "Could not update tasbeeh library. Please try again.",
-      );
-    }
+  const handleEdit = (item: any) => {
+    setEditingId(item.id);
+    setNewTitle(item.title);
+    setNewCount(String(item.count));
+    setIsFormVisible(true);
   };
 
-  const handleEditTasbeeh = (item: TasbeehItem) => {
-    setEditingItem(item);
-    setEditModalVisible(true);
+  const cancelForm = () => {
+    setIsFormVisible(false);
+    setEditingId(null);
+    setNewTitle("");
+    setNewCount("");
   };
 
-  const handleSaveEditedTasbeeh = async (name: string, goal: number) => {
-    if (!editingItem) {
-      return;
+  const handleSaveTasbeeh = () => {
+    if (!newTitle.trim() || !newCount.trim()) return;
+
+    if (editingId) {
+      setTasbeehList((prev) =>
+        prev.map((item) =>
+          item.id === editingId
+            ? { ...item, title: newTitle, count: newCount }
+            : item,
+        ),
+      );
+    } else {
+      const newTasbeeh = {
+        id: Date.now().toString(),
+        title: newTitle,
+        arabic: "...",
+        translation: "Custom Tasbeeh",
+        count: newCount,
+      };
+      setTasbeehList([newTasbeeh, ...tasbeehList]);
     }
 
-    const updatedList = tasbeehList.map((item) =>
-      item.id === editingItem.id ? { ...item, name, goal } : item,
+    cancelForm();
+  };
+
+  const filteredList = useMemo(() => {
+    return tasbeehList.filter(
+      (item) =>
+        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.arabic.includes(searchQuery),
     );
-
-    setTasbeehList(updatedList);
-    setEditModalVisible(false);
-    setEditingItem(undefined);
-
-    try {
-      await saveCustomTasbeehItems(
-        updatedList.filter((item) => !item.isDefault),
-      );
-    } catch {
-      Alert.alert("Edit failed", "Could not update tasbeeh. Please try again.");
-    }
-  };
+  }, [tasbeehList, searchQuery]);
 
   return (
-    <ThemedView style={{ flex: 1, backgroundColor: theme.background }}>
-      <FlatList
-        data={tasbeehList}
-        keyExtractor={(item) => item.id}
-        scrollEnabled
+    <SafeAreaView style={styles.container}>
+      {/* Updated Unified Header */}
+      <View style={styles.topBar}>
+        <View style={{ width: 24 }} />{" "}
+        <Text style={styles.upperLabel}>YOUR SANCTUARY</Text>
+        <View style={{ width: 24 }} />{" "}
+        {/* Spacer to keep title perfectly centered */}
+      </View>
+
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        contentInset={insets}
-        style={styles.scrollView}
-        contentContainerStyle={[
-          styles.listContentContainer,
-          contentPlatformStyle,
-        ]}
-        ListHeaderComponent={
-          <View style={styles.headerSection}>
-            <ThemedText style={styles.mainTitle}>
-              📿 Tasbeeh{"\n"}Library
-            </ThemedText>
-            <ThemedText style={styles.subtitle}>
-              Choose a tasbeeh or{"\n"}create a custom one
-            </ThemedText>
-          </View>
-        }
-        renderItem={({ item }) => (
-          <TasbeehCard
-            item={item}
-            selected={selectedId === item.id}
-            onPress={() => handleCardPress(item)}
-            onEdit={() => handleEditTasbeeh(item)}
-            onDelete={() => handleDeleteTasbeeh(item.id)}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.headerSection}>
+          <Text style={styles.mainTitle}>Explore Library</Text>
+          <Text style={styles.subtitle}>Manage your tasbeeh collection</Text>
+        </View>
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <Ionicons
+            name="search"
+            size={20}
+            color="#888"
+            style={styles.searchIcon}
           />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search your tasbeeh..."
+            placeholderTextColor="#888"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+
+        {/* Inline Form */}
+        {isFormVisible && (
+          <View style={styles.inlineFormContainer}>
+            <View style={styles.formHeader}>
+              <ThemedText style={styles.formTitle}>
+                {editingId ? "Edit Tasbeeh" : "Create New Tasbeeh"}
+              </ThemedText>
+              <Pressable onPress={cancelForm}>
+                <MaterialIcons name="close" size={24} color="#888" />
+              </Pressable>
+            </View>
+
+            <ThemedText style={styles.formInputLabel}>Tasbeeh Name</ThemedText>
+            <TextInput
+              style={styles.formInput}
+              placeholder="e.g. SubhanAllah"
+              placeholderTextColor="#666"
+              value={newTitle}
+              onChangeText={setNewTitle}
+            />
+
+            <ThemedText style={styles.formInputLabel}>Target Goal</ThemedText>
+            <TextInput
+              style={styles.formInput}
+              placeholder="e.g. 33 or 100"
+              placeholderTextColor="#666"
+              value={newCount}
+              onChangeText={setNewCount}
+              keyboardType="numeric"
+            />
+
+            <View style={styles.formActionsGroup}>
+              <Pressable style={styles.formCancelBtn} onPress={cancelForm}>
+                <ThemedText style={styles.formCancelText}>Cancel</ThemedText>
+              </Pressable>
+              <Pressable style={styles.formSaveBtn} onPress={handleSaveTasbeeh}>
+                <ThemedText style={styles.formSaveText}>
+                  {editingId ? "Update" : "Save"}
+                </ThemedText>
+              </Pressable>
+            </View>
+          </View>
         )}
-        ListFooterComponent={
+
+        {/* Cards List */}
+        <View style={styles.cardList}>
+          {filteredList.map((item) => (
+            <View key={item.id} style={styles.card}>
+              <View style={styles.cardHeader}>
+                <ThemedText style={styles.arabicText}>{item.arabic}</ThemedText>
+                <View style={styles.goalPill}>
+                  <ThemedText style={styles.goalText}>
+                    Goal: {item.count}
+                  </ThemedText>
+                </View>
+              </View>
+
+              <ThemedText style={styles.englishTitle}>{item.title}</ThemedText>
+              <ThemedText style={styles.translationText}>
+                {item.translation}
+              </ThemedText>
+
+              {/* Action Buttons */}
+              <View style={styles.cardActions}>
+                <View style={styles.iconActionGroup}>
+                  <Pressable
+                    style={styles.iconBtn}
+                    onPress={() => handleDelete(item.id)}
+                  >
+                    <MaterialIcons
+                      name="delete-outline"
+                      size={24}
+                      color="#FF5252"
+                    />
+                  </Pressable>
+                  <Pressable
+                    style={styles.iconBtn}
+                    onPress={() => handleEdit(item)}
+                  >
+                    <MaterialIcons name="edit" size={22} color="#00E5FF" />
+                  </Pressable>
+                </View>
+
+                <Pressable
+                  style={styles.startJourneyBtn}
+                  onPress={() => handleStartJourney(item)}
+                >
+                  <ThemedText style={styles.startJourneyText}>
+                    START JOURNEY
+                  </ThemedText>
+                  <MaterialIcons name="arrow-forward" size={18} color="#000" />
+                </Pressable>
+              </View>
+            </View>
+          ))}
+
+          {filteredList.length === 0 && !isFormVisible && (
+            <ThemedText style={styles.emptyText}>
+              No Tasbeeh found matching "{searchQuery}"
+            </ThemedText>
+          )}
+        </View>
+      </ScrollView>
+
+      {/* Floating Create Button */}
+      {!isFormVisible && (
+        <View style={styles.floatingButtonContainer}>
           <Pressable
-            style={({ pressed }) => [
-              styles.createButton,
-              { opacity: pressed ? 0.8 : 1 },
-            ]}
+            style={styles.createButton}
             onPress={() => {
-              setCreateModalVisible(true);
+              setEditingId(null);
+              setIsFormVisible(true);
             }}
           >
-            <ThemedText style={styles.createButtonText}>
-              + Create New Tasbeeh
-            </ThemedText>
+            <MaterialIcons name="add" size={24} color="#000" />
+            <ThemedText style={styles.createButtonText}>Create New</ThemedText>
           </Pressable>
-        }
-      />
-
-      {/* Modals */}
-      <CustomizeModal
-        visible={createModalVisible}
-        onClose={() => setCreateModalVisible(false)}
-        item={undefined}
-        title="Create Tasbeeh"
-        submitLabel="Create"
-        editable={true}
-        onSave={(name, goal) => handleCreateTasbeeh(name, goal)}
-      />
-
-      <CustomizeModal
-        visible={editModalVisible}
-        onClose={() => {
-          setEditModalVisible(false);
-          setEditingItem(undefined);
-        }}
-        item={editingItem}
-        title="Edit Tasbeeh"
-        submitLabel="Save"
-        editable={true}
-        onSave={handleSaveEditedTasbeeh}
-      />
-    </ThemedView>
+        </View>
+      )}
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollView: {
+  container: {
     flex: 1,
+    backgroundColor: "#0F1115",
   },
-  contentContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-  },
-  wrapper: {
-    maxWidth: MaxContentWidth,
-    flexGrow: 1,
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.five,
-    gap: Spacing.five,
-  },
-  listContentContainer: {
-    alignSelf: "center",
-    width: "100%",
-    maxWidth: MaxContentWidth,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.three,
-  },
-  headerSection: {
-    marginTop: Spacing.two,
-    marginBottom: Spacing.four,
-  },
-  mainTitle: {
-    fontSize: 44,
-    fontWeight: "800",
-    lineHeight: 48,
-    marginBottom: Spacing.three,
-  },
-  subtitle: {
-    fontSize: 24,
-    fontWeight: "600",
-    lineHeight: 34,
-  },
-  card: {
-    borderRadius: 24, // Matched large border radius
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.four,
+  topBar: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === "android" ? 40 : 10,
+    paddingBottom: 10,
   },
-  cardContent: {
+
+  upperLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 2,
+    color: COLORS.accent,
+  },
+
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 120,
+  },
+  headerSection: {
+    alignItems: "center",
+  },
+  mainTitle: {
+    fontSize: 32,
+    fontWeight: "bold",
+    color: COLORS.textMain,
+    marginBottom: 5,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: COLORS.textMuted,
+    marginBottom: 20,
+  },
+
+  subLabel: {
+    color: "#00E5FF",
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 2,
+  },
+  mainHeading: {
+    color: "#fff",
+    fontSize: 32,
+    fontWeight: "bold",
+    marginTop: 5,
+    marginBottom: 20,
+  },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#16191E",
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    height: 50,
+    marginBottom: 20,
+  },
+  searchIcon: {
+    marginRight: 10,
+  },
+  searchInput: {
     flex: 1,
-    gap: 4,
+    color: "#fff",
+    fontSize: 16,
   },
-  cardName: {
+
+  /* Inline Form Styles */
+  inlineFormContainer: {
+    backgroundColor: "#16191E",
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 25,
+    borderWidth: 1,
+    borderColor: "#2C3033",
+  },
+  formHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 15,
+  },
+  formTitle: {
+    color: "#00E5FF",
     fontSize: 18,
+    fontWeight: "bold",
+  },
+  formInputLabel: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
+    marginBottom: 8,
+  },
+  formInput: {
+    backgroundColor: "#23272F",
+    borderRadius: 12,
+    padding: 15,
+    color: "#fff",
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: "#2C3033",
+    marginBottom: 15,
+  },
+  formActionsGroup: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 5,
+  },
+  formCancelBtn: {
+    flex: 1,
+    backgroundColor: "#23272F",
+    padding: 15,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  formCancelText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  formSaveBtn: {
+    flex: 1,
+    backgroundColor: "#00E5FF",
+    padding: 15,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  formSaveText: {
+    color: "#000",
+    fontSize: 14,
     fontWeight: "700",
   },
+
+  /* Card Styles */
+  cardList: {
+    gap: 20,
+  },
+  card: {
+    backgroundColor: "#16191E",
+    borderRadius: 20,
+    padding: 20,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  goalPill: {
+    backgroundColor: "rgba(0, 229, 255, 0.1)",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+  },
   goalText: {
-    fontSize: 15,
-    fontWeight: "500",
-    opacity: 0.9,
+    color: "#00E5FF",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  arabicText: {
+    color: "#00E5FF",
+    fontSize: 26,
+    fontWeight: "bold",
+  },
+  englishTitle: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 4,
+  },
+  translationText: {
+    color: "#888",
+    fontSize: 14,
+    marginBottom: 20,
   },
   cardActions: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    gap: Spacing.one,
+    marginTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#2C3033",
+    paddingTop: 15,
   },
-  selectedBadge: {
-    fontSize: 22,
-    marginRight: Spacing.one,
+  iconActionGroup: {
+    flexDirection: "row",
+    gap: 15,
   },
-  deleteButton: {
-    fontWeight: "800",
-    color: "#ba1a1a",
-    fontSize: 14,
+  iconBtn: {
+    padding: 5,
   },
-  editButton: {
+  startJourneyBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#00E5FF",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    gap: 8,
+  },
+  startJourneyText: {
+    color: "#000",
+    fontSize: 12,
     fontWeight: "700",
-    color: "#006c60",
-    fontSize: 14,
+    letterSpacing: 1,
+  },
+  emptyText: {
+    color: "#888",
+    textAlign: "center",
+    marginTop: 20,
+  },
+
+  /* Floating Button */
+  floatingButtonContainer: {
+    position: "absolute",
+    bottom: 30,
+    left: 0,
+    right: 0,
+    alignItems: "center",
   },
   createButton: {
-    backgroundColor: "#004d4c",
-    borderRadius: 32, // Pill shape match
-    paddingVertical: 20,
+    flexDirection: "row",
+    backgroundColor: "#00E5FF",
+    paddingHorizontal: 25,
+    paddingVertical: 15,
+    borderRadius: 30,
     alignItems: "center",
-    justifyContent: "center",
-    marginTop: Spacing.one,
-    marginBottom: Spacing.five,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    gap: 8,
+    shadowColor: "#00E5FF",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
   createButtonText: {
-    color: "#ffffff",
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: Spacing.four,
-  },
-  modalContent: {
-    borderRadius: 24,
-    padding: Spacing.five,
-    width: "100%",
-    maxWidth: 400,
-    gap: Spacing.four,
-  },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#004d4c",
-    textAlign: "center",
-  },
-  formGroup: {
-    gap: Spacing.one,
-  },
-  label: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#004d4c",
-  },
-  input: {
-    borderWidth: 1.5,
-    borderRadius: Spacing.three,
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.three,
-    fontSize: 16,
-  },
-  buttonLabel: {
-    fontSize: 16,
-    fontWeight: "700",
     color: "#000",
-  },
-  buttonLabelLight: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#fff",
-  },
-  modalButtons: {
-    flexDirection: "row",
-    gap: Spacing.three,
-    marginTop: Spacing.two,
-  },
-  modalButton: {
-    flex: 1,
-  },
-  modalButtonInner: {
-    borderRadius: 32, // Match pill aesthetic
-    paddingVertical: Spacing.three,
-    alignItems: "center",
-    justifyContent: "center",
   },
 });

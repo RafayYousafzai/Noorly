@@ -1,36 +1,43 @@
+import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
   Alert,
   FlatList,
   Platform,
   Pressable,
+  SafeAreaView,
   StyleSheet,
+  Text,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { WebBadge } from "@/components/web-badge";
-import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
-import { useTheme } from "@/hooks/use-theme";
 import {
   clearHistoryEntries,
   getHistoryEntries,
   type HistoryEntry,
 } from "@/utils/tasbeeh-store";
 
+// Hardcoded Theme to match Library and Counter exactly
+const COLORS = {
+  background: "#0F1115",
+  card: "#16191E",
+  border: "#2C3033",
+  buttonBg: "#23272F",
+  accent: "#00E5FF",
+  textMain: "#FFFFFF",
+  textMuted: "#888888",
+  glowBg: "rgba(0, 229, 255, 0.1)",
+  danger: "#FF5252",
+  dangerBg: "rgba(255, 82, 82, 0.1)",
+};
+
 export default function HistoryScreen() {
+  const router = useRouter();
   const [entries, setEntries] = useState<HistoryEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const safeAreaInsets = useSafeAreaInsets();
-  const insets = {
-    ...safeAreaInsets,
-    bottom: safeAreaInsets.bottom + BottomTabInset + Spacing.three,
-  };
-  const theme = useTheme();
 
   const loadHistory = useCallback(async () => {
     try {
@@ -54,37 +61,22 @@ export default function HistoryScreen() {
   };
 
   const handleClearHistory = () => {
-    Alert.alert("Clear history", "Remove all saved session entries?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Clear",
-        style: "destructive",
-        onPress: async () => {
-          await clearHistoryEntries();
-          setEntries([]);
+    Alert.alert(
+      "Clear History",
+      "Are you sure you want to delete all saved session entries? This cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Clear All",
+          style: "destructive",
+          onPress: async () => {
+            await clearHistoryEntries();
+            setEntries([]);
+          },
         },
-      },
-    ]);
+      ],
+    );
   };
-
-  const contentPlatformStyle = Platform.select({
-    android: {
-      paddingTop: insets.top,
-      paddingLeft: insets.left,
-      paddingRight: insets.right,
-      paddingBottom: insets.bottom,
-    },
-    web: {
-      paddingTop: Spacing.six,
-      paddingBottom: Spacing.four,
-    },
-    default: {
-      paddingTop: insets.top,
-      paddingLeft: insets.left,
-      paddingRight: insets.right,
-      paddingBottom: insets.bottom,
-    },
-  });
 
   const completionCount = entries.filter(
     (entry) => entry.eventType === "goal-complete",
@@ -94,255 +86,324 @@ export default function HistoryScreen() {
   ).length;
 
   return (
-    <FlatList
-      style={[styles.scrollView, { backgroundColor: theme.background }]}
-      contentInset={insets}
-      contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}
-      data={entries}
-      keyExtractor={(item) => item.id}
-      ListHeaderComponent={
-        <ThemedView style={styles.wrapper}>
+    <SafeAreaView style={styles.container}>
+      {/* Top Header Row */}
+      <View style={styles.topBar}>
+        <View style={{ width: 24 }} /> {/* Spacer to center title */}
+        <Text style={styles.upperLabel}>YOUR PROGRESS</Text>
+        <View style={{ width: 24 }} /> {/* Spacer to center title */}
+      </View>
+
+      <FlatList
+        style={styles.scrollView}
+        contentContainerStyle={styles.contentContainer}
+        data={entries}
+        keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
+        onRefresh={handleRefresh}
+        refreshing={isRefreshing}
+        ListHeaderComponent={
           <View style={styles.headerSection}>
-            <ThemedText
-              type="small"
-              themeColor="textSecondary"
-              style={styles.upperLabel}
-            >
-              YOUR PROGRESS
-            </ThemedText>
-            <ThemedText
-              type="subtitle"
-              style={[styles.mainTitle, { color: "#004d4c" }]}
-            >
-              History
-            </ThemedText>
-            <ThemedText
-              type="small"
-              themeColor="textSecondary"
-              style={styles.subtitle}
-            >
-              Completed and reset sessions
-            </ThemedText>
-          </View>
+            <Text style={styles.mainTitle}>History</Text>
+            <Text style={styles.subtitle}>Completed and reset sessions</Text>
 
-          <View style={styles.statsRow}>
-            <ThemedView type="backgroundElement" style={styles.statCard}>
-              <ThemedText type="small" themeColor="textSecondary">
-                Total
-              </ThemedText>
-              <ThemedText type="subtitle" style={styles.statValue}>
-                {entries.length}
-              </ThemedText>
-            </ThemedView>
-            <ThemedView type="backgroundElement" style={styles.statCard}>
-              <ThemedText type="small" themeColor="textSecondary">
-                Completed
-              </ThemedText>
-              <ThemedText
-                type="subtitle"
-                style={[styles.statValue, { color: "#0a8f73" }]}
-              >
-                {completionCount}
-              </ThemedText>
-            </ThemedView>
-            <ThemedView type="backgroundElement" style={styles.statCard}>
-              <ThemedText type="small" themeColor="textSecondary">
-                Resets
-              </ThemedText>
-              <ThemedText
-                type="subtitle"
-                style={[styles.statValue, { color: "#b5453a" }]}
-              >
-                {resetCount}
-              </ThemedText>
-            </ThemedView>
-          </View>
+            {/* Dashboard Stats */}
+            <View style={styles.statsRow}>
+              <View style={styles.statCard}>
+                <Text style={styles.statLabel}>Total</Text>
+                <Text style={styles.statValue}>{entries.length}</Text>
+              </View>
+              <View style={styles.statCard}>
+                <Text style={styles.statLabel}>Completed</Text>
+                <Text style={[styles.statValue, { color: COLORS.accent }]}>
+                  {completionCount}
+                </Text>
+              </View>
+              <View style={styles.statCard}>
+                <Text style={styles.statLabel}>Resets</Text>
+                <Text style={[styles.statValue, { color: COLORS.danger }]}>
+                  {resetCount}
+                </Text>
+              </View>
+            </View>
 
-          {!isLoading && entries.length > 0 && (
-            <Pressable
-              onPress={handleClearHistory}
-              style={({ pressed }) => [
-                styles.clearButton,
-                pressed && { opacity: 0.7 },
-              ]}
-            >
-              <ThemedText type="smallBold" style={styles.clearButtonText}>
-                Clear History
-              </ThemedText>
-            </Pressable>
-          )}
-        </ThemedView>
-      }
-      renderItem={({ item }) => (
-        <ThemedView type="backgroundElement" style={styles.historyCard}>
-          <View style={styles.historyRow}>
-            <ThemedText type="smallBold" style={styles.historyName}>
-              {item.tasbeehName}
-            </ThemedText>
-            <ThemedText
-              type="small"
-              style={[
-                styles.eventBadge,
-                item.eventType === "manual-reset"
-                  ? styles.resetBadge
-                  : styles.completeBadge,
-              ]}
-            >
-              {item.eventType === "manual-reset" ? "Reset" : "Goal Reached"}
-            </ThemedText>
+            {/* Clear Button */}
+            {!isLoading && entries.length > 0 && (
+              <Pressable
+                onPress={handleClearHistory}
+                style={({ pressed }) => [
+                  styles.clearButton,
+                  pressed && { opacity: 0.7 },
+                ]}
+              >
+                <MaterialIcons
+                  name="delete-outline"
+                  size={18}
+                  color={COLORS.danger}
+                />
+                <Text style={styles.clearButtonText}>Clear History</Text>
+              </Pressable>
+            )}
           </View>
-          <ThemedText type="small" themeColor="textSecondary">
-            Goal: {item.goal} • Count: {item.countAtEvent}
-          </ThemedText>
-          <ThemedText type="small" themeColor="textSecondary">
-            Set: {item.currentSet} • Completed Sets: {item.completedSets}
-          </ThemedText>
-          <ThemedText
-            type="small"
-            themeColor="textSecondary"
-            style={styles.timestamp}
-          >
-            {new Date(item.createdAt).toLocaleString()}
-          </ThemedText>
-        </ThemedView>
-      )}
-      ListEmptyComponent={
-        <ThemedView style={styles.wrapper}>
-          <ThemedView type="backgroundElement" style={styles.placeholder}>
-            <ThemedText
-              type="small"
-              themeColor="textSecondary"
-              style={styles.placeholderText}
-            >
+        }
+        renderItem={({ item }) => {
+          const isReset = item.eventType === "manual-reset";
+          return (
+            <View style={styles.historyCard}>
+              <View style={styles.historyRow}>
+                <Text style={styles.historyName}>{item.tasbeehName}</Text>
+                <View
+                  style={[
+                    styles.eventBadge,
+                    isReset ? styles.resetBadge : styles.completeBadge,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.eventBadgeText,
+                      isReset
+                        ? { color: COLORS.danger }
+                        : { color: COLORS.accent },
+                    ]}
+                  >
+                    {isReset ? "Reset" : "Goal Reached"}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.detailsRow}>
+                <View style={styles.detailItem}>
+                  <MaterialIcons
+                    name="track-changes"
+                    size={14}
+                    color={COLORS.textMuted}
+                  />
+                  <Text style={styles.detailText}>Goal: {item.goal}</Text>
+                </View>
+                <View style={styles.detailItem}>
+                  <MaterialIcons
+                    name="touch-app"
+                    size={14}
+                    color={COLORS.textMuted}
+                  />
+                  <Text style={styles.detailText}>
+                    Count: {item.countAtEvent}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.detailsRow}>
+                <View style={styles.detailItem}>
+                  <MaterialIcons
+                    name="repeat"
+                    size={14}
+                    color={COLORS.textMuted}
+                  />
+                  <Text style={styles.detailText}>Set: {item.currentSet}</Text>
+                </View>
+                <View style={styles.detailItem}>
+                  <MaterialIcons
+                    name="done-all"
+                    size={14}
+                    color={COLORS.textMuted}
+                  />
+                  <Text style={styles.detailText}>
+                    Completed Sets: {item.completedSets}
+                  </Text>
+                </View>
+              </View>
+
+              <Text style={styles.timestamp}>
+                {new Date(item.createdAt).toLocaleString([], {
+                  month: "short",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </Text>
+            </View>
+          );
+        }}
+        ListEmptyComponent={
+          <View style={styles.placeholder}>
+            <MaterialIcons name="history" size={48} color={COLORS.border} />
+            <Text style={styles.placeholderText}>
               {isLoading ? "Loading history..." : "No history yet"}
-            </ThemedText>
-            <ThemedText
-              type="small"
-              themeColor="textSecondary"
-              style={styles.placeholderSubtext}
-            >
-              Resets and completed goals will appear here
-            </ThemedText>
-          </ThemedView>
-        </ThemedView>
-      }
-      ListFooterComponent={Platform.OS === "web" ? <WebBadge /> : null}
-      showsVerticalScrollIndicator={false}
-      onRefresh={handleRefresh}
-      refreshing={isRefreshing}
-    />
+            </Text>
+            <Text style={styles.placeholderSubtext}>
+              Resets and completed goals will appear here.
+            </Text>
+          </View>
+        }
+      />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
   scrollView: {
     flex: 1,
   },
   contentContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: Platform.OS === "android" ? 40 : 20,
+  },
+
+  /* Top Bar */
+  topBar: {
     flexDirection: "row",
-    justifyContent: "center",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === "android" ? 40 : 10,
+    paddingBottom: 10,
   },
-  wrapper: {
-    maxWidth: MaxContentWidth,
-    flexGrow: 1,
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.five,
-    gap: Spacing.four,
+
+  upperLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 2,
+    color: COLORS.accent,
   },
+
+  /* Header Section */
   headerSection: {
     alignItems: "center",
-    gap: Spacing.one,
-  },
-  upperLabel: {
-    fontSize: 11,
-    fontWeight: "600",
-    letterSpacing: 1.5,
-    textTransform: "uppercase",
+    marginBottom: 25,
   },
   mainTitle: {
     fontSize: 32,
-    fontWeight: "700",
-    marginVertical: Spacing.one,
+    fontWeight: "bold",
+    color: COLORS.textMain,
+    marginBottom: 5,
   },
   subtitle: {
     fontSize: 14,
-    fontStyle: "italic",
+    color: COLORS.textMuted,
+    marginBottom: 20,
   },
+
+  /* Stats Row */
   statsRow: {
     flexDirection: "row",
-    gap: Spacing.two,
+    gap: 12,
+    width: "100%",
+    marginBottom: 20,
   },
   statCard: {
     flex: 1,
-    borderRadius: Spacing.three,
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.two,
+    backgroundColor: COLORS.card,
+    borderRadius: 16,
+    paddingVertical: 15,
+    paddingHorizontal: 10,
     alignItems: "center",
-    gap: Spacing.half,
+    gap: 5,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: COLORS.textMuted,
+    fontWeight: "600",
   },
   statValue: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: "#004d4c",
+    fontSize: 24,
+    fontWeight: "bold",
+    color: COLORS.textMain,
   },
+
+  /* Clear Button */
   clearButton: {
+    flexDirection: "row",
+    alignItems: "center",
     alignSelf: "flex-end",
-    paddingVertical: Spacing.one,
-    paddingHorizontal: Spacing.three,
-    borderRadius: Spacing.five,
-    backgroundColor: "#2a2f2f",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: COLORS.dangerBg,
+    gap: 6,
   },
   clearButtonText: {
-    color: "#ffb4ab",
+    color: COLORS.danger,
+    fontSize: 12,
+    fontWeight: "700",
   },
+
+  /* History Cards */
   historyCard: {
-    borderRadius: Spacing.four,
-    marginHorizontal: Spacing.four,
-    marginBottom: Spacing.three,
-    padding: Spacing.three,
-    gap: Spacing.one,
+    backgroundColor: COLORS.card,
+    borderRadius: 16,
+    marginBottom: 15,
+    padding: 16,
   },
   historyRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: 12,
+    paddingBottom: 10,
   },
   historyName: {
-    fontSize: 16,
-    color: "#004d4c",
+    fontSize: 18,
+    fontWeight: "bold",
+    color: COLORS.textMain,
   },
   eventBadge: {
-    paddingHorizontal: Spacing.two,
-    paddingVertical: Spacing.half,
-    borderRadius: Spacing.four,
-    overflow: "hidden",
-    fontWeight: "600",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
   resetBadge: {
-    color: "#ffb4ab",
-    backgroundColor: "#4a2121",
+    backgroundColor: COLORS.dangerBg,
   },
   completeBadge: {
-    color: "#92f7dd",
-    backgroundColor: "#1d3f38",
+    backgroundColor: COLORS.glowBg,
+  },
+  eventBadgeText: {
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  detailsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  detailItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    flex: 1,
+  },
+  detailText: {
+    fontSize: 13,
+    color: COLORS.textMuted,
   },
   timestamp: {
-    marginTop: Spacing.half,
+    marginTop: 8,
     fontSize: 11,
+    color: COLORS.textMuted,
+    textAlign: "right",
+    fontStyle: "italic",
   },
+
+  /* Placeholder */
   placeholder: {
-    borderRadius: Spacing.four,
-    paddingVertical: Spacing.five,
-    paddingHorizontal: Spacing.four,
+    borderRadius: 16,
+    paddingVertical: 40,
     alignItems: "center",
-    gap: Spacing.two,
+    justifyContent: "center",
+    gap: 12,
   },
   placeholderText: {
     fontSize: 18,
     fontWeight: "600",
+    color: COLORS.textMain,
   },
   placeholderSubtext: {
-    fontSize: 12,
+    fontSize: 13,
+    color: COLORS.textMuted,
     textAlign: "center",
   },
 });
