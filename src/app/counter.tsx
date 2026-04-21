@@ -1,5 +1,6 @@
 import * as Haptics from "expo-haptics";
-import React, { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useRef, useState } from "react";
 import {
   Alert,
   Platform,
@@ -20,6 +21,7 @@ import {
   Spacing,
 } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import { addHistoryEntry } from "@/utils/tasbeeh-store";
 
 function CircleProgressDisplay({
   count,
@@ -154,11 +156,22 @@ function IconButton({
 }
 
 export default function CounterScreen() {
+  const router = useRouter();
+  const params = useLocalSearchParams<{
+    tasbeehName?: string;
+    tasbeehGoal?: string;
+  }>();
+
   const [count, setCount] = useState(0);
   const [hapticEnabled, setHapticEnabled] = useState(true);
   const [currentSet, setCurrentSet] = useState(1);
   const [completedSets, setCompletedSets] = useState(0);
-  const goal = 100;
+  const completionLockRef = useRef(false);
+  const parsedGoal = params.tasbeehGoal
+    ? Number.parseInt(params.tasbeehGoal, 10)
+    : NaN;
+  const goal = Number.isFinite(parsedGoal) && parsedGoal > 0 ? parsedGoal : 100;
+  const tasbeehName = params.tasbeehName || "SubhanAllah";
   const totalSets = 5;
   const safeAreaInsets = useSafeAreaInsets();
   const insets = {
@@ -167,12 +180,46 @@ export default function CounterScreen() {
   };
   const theme = useTheme();
 
+  const addToHistory = async (eventType: "manual-reset" | "goal-complete") => {
+    try {
+      await addHistoryEntry({
+        tasbeehName,
+        goal,
+        countAtEvent: count,
+        currentSet,
+        completedSets,
+        eventType,
+      });
+    } catch {
+      // Non-blocking storage failure
+    }
+  };
+
   const handleIncrement = async () => {
+    if (completionLockRef.current || count >= goal) {
+      return;
+    }
+
     const newCount = count + 1;
     setCount(newCount);
 
     // Check if goal is reached
     if (newCount >= goal) {
+      completionLockRef.current = true;
+
+      try {
+        await addHistoryEntry({
+          tasbeehName,
+          goal,
+          countAtEvent: newCount,
+          currentSet,
+          completedSets: completedSets + 1,
+          eventType: "goal-complete",
+        });
+      } catch {
+        // Non-blocking storage failure
+      }
+
       // Play success haptic
       if (hapticEnabled) {
         try {
@@ -188,9 +235,8 @@ export default function CounterScreen() {
       setTimeout(() => {
         setCount(0);
         setCompletedSets((prev) => prev + 1);
-        if (currentSet < totalSets) {
-          setCurrentSet((prev) => prev + 1);
-        }
+        setCurrentSet((prev) => (prev < totalSets ? prev + 1 : 1));
+        completionLockRef.current = false;
       }, 600);
     }
   };
@@ -208,7 +254,13 @@ export default function CounterScreen() {
         {
           text: "Reset Set",
           onPress: async () => {
+            completionLockRef.current = false;
+            if (count > 0) {
+              await addToHistory("manual-reset");
+            }
             setCount(0);
+            setCurrentSet(1);
+            setCompletedSets(0);
             if (hapticEnabled) {
               try {
                 await Haptics.notificationAsync(
@@ -275,7 +327,7 @@ export default function CounterScreen() {
             type="subtitle"
             style={[styles.mainTitle, { color: "#004d4c" }]}
           >
-            SubhanAllah
+            {tasbeehName}
           </ThemedText>
           <ThemedText
             type="small"
@@ -329,11 +381,13 @@ export default function CounterScreen() {
           <IconButton
             label="✎ Edit"
             variant="secondary"
+            onPress={() => router.push("/library")}
             hapticEnabled={hapticEnabled}
           />
           <IconButton
-            label="⛶"
+            label="His"
             variant="default"
+            onPress={() => router.push("/history")}
             hapticEnabled={hapticEnabled}
           />
         </View>
