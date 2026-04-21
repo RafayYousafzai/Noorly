@@ -1,9 +1,8 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useRef, useState } from "react";
+import React, { useEffect } from "react";
 import {
-  Alert,
   Platform,
   Pressable,
   SafeAreaView,
@@ -11,9 +10,7 @@ import {
   Text,
   View,
 } from "react-native";
-
-// Assuming you still want to log history
-import { addHistoryEntry } from "@/utils/tasbeeh-store";
+import { useCounter } from "@/context/CounterContext";
 
 // Hardcoded Theme to match Library exactly
 const COLORS = {
@@ -126,106 +123,31 @@ export default function CounterScreen() {
     tasbeehGoal?: string;
   }>();
 
-  const [count, setCount] = useState(0);
-  const [hapticEnabled, setHapticEnabled] = useState(true);
-  const [currentSet, setCurrentSet] = useState(1);
-  const [completedSets, setCompletedSets] = useState(0);
+  const {
+    count,
+    goal,
+    tasbeehName,
+    currentSet,
+    hapticEnabled,
+    setGoal,
+    setTasbeehName,
+    handleIncrement,
+    handleReset,
+    handleHapticToggle,
+  } = useCounter();
 
-  const completionLockRef = useRef(false);
-
-  const parsedGoal = params.tasbeehGoal
-    ? Number.parseInt(params.tasbeehGoal, 10)
-    : NaN;
-  const goal = Number.isFinite(parsedGoal) && parsedGoal > 0 ? parsedGoal : 100;
-  const tasbeehName = params.tasbeehName || "SubhanAllah";
-  const totalSets = 5;
-
-  const addToHistory = async (eventType: "manual-reset" | "goal-complete") => {
-    try {
-      await addHistoryEntry({
-        tasbeehName,
-        goal,
-        countAtEvent: count,
-        currentSet,
-        completedSets,
-        eventType,
-      });
-    } catch {
-      // Non-blocking storage failure
+  useEffect(() => {
+    if (params.tasbeehName) {
+      setTasbeehName(params.tasbeehName);
     }
-  };
-
-  const handleIncrement = async () => {
-    if (completionLockRef.current || count >= goal) {
-      return;
-    }
-
-    const newCount = count + 1;
-    setCount(newCount);
-
-    // Check if goal is reached
-    if (newCount >= goal) {
-      completionLockRef.current = true; // Lock immediately to prevent double taps
-
-      try {
-        await addToHistory("goal-complete");
-      } catch {}
-
-      // Play success haptic (A stronger buzz for completion)
-      if (hapticEnabled) {
-        try {
-          await Haptics.notificationAsync(
-            Haptics.NotificationFeedbackType.Success,
-          );
-        } catch (e) {}
+    if (params.tasbeehGoal) {
+      const parsedGoal = Number.parseInt(params.tasbeehGoal, 10);
+      if (Number.isFinite(parsedGoal) && parsedGoal > 0) {
+        setGoal(parsedGoal);
       }
-
-      // Auto-reset after brief delay for visual feedback
-      setTimeout(() => {
-        setCount(0);
-        setCompletedSets((prev) => prev + 1);
-        setCurrentSet((prev) => (prev < totalSets ? prev + 1 : 1));
-        completionLockRef.current = false; // Unlock
-      }, 700);
     }
-  };
+  }, [params.tasbeehName, params.tasbeehGoal, setTasbeehName, setGoal]);
 
-  const handleReset = async () => {
-    Alert.alert(
-      "Reset Counter",
-      "Are you sure you want to reset the current set?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Reset",
-          style: "destructive",
-          onPress: async () => {
-            completionLockRef.current = false;
-            if (count > 0) {
-              await addToHistory("manual-reset");
-            }
-            setCount(0);
-            setCurrentSet(1);
-            setCompletedSets(0);
-            if (hapticEnabled) {
-              try {
-                await Haptics.notificationAsync(
-                  Haptics.NotificationFeedbackType.Warning,
-                );
-              } catch (e) {}
-            }
-          },
-        },
-      ],
-    );
-  };
-
-  const handleHapticToggle = async () => {
-    setHapticEnabled((prev) => !prev);
-    try {
-      await Haptics.selectionAsync();
-    } catch (e) {}
-  };
 
   return (
     <SafeAreaView style={styles.container}>
