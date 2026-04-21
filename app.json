@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "noorly",
+    "name": "Noorly",
     "slug": "noorly",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -35,7 +35,15 @@
           }
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+       [
+        "expo-navigation-bar",
+        {
+          "enforceContrast": true,
+          "barStyle": "light",
+          "visibility": "visible"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

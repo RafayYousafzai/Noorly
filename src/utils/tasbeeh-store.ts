@@ -20,6 +20,16 @@ export interface HistoryEntry {
   createdAt: string;
 }
 
+export interface ActiveState {
+  count: number;
+  currentSet: number;
+  completedSets: number;
+  goal: number;
+  tasbeehName: string;
+  hapticEnabled: boolean;
+}
+
+
 const DATABASE_NAME = "noorly.db";
 
 let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
@@ -56,6 +66,16 @@ async function initDb(): Promise<void> {
           completed_sets INTEGER NOT NULL,
           event_type TEXT NOT NULL,
           created_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS active_state (
+          id TEXT PRIMARY KEY NOT NULL,
+          count INTEGER NOT NULL,
+          current_set INTEGER NOT NULL,
+          completed_sets INTEGER NOT NULL,
+          goal INTEGER NOT NULL,
+          tasbeeh_name TEXT NOT NULL,
+          haptic_enabled INTEGER NOT NULL
         );
       `);
     })();
@@ -168,4 +188,42 @@ export async function clearHistoryEntries(): Promise<void> {
   await initDb();
   const db = await getDb();
   await db.runAsync("DELETE FROM history_entries");
+}
+
+export async function getActiveState(): Promise<ActiveState | null> {
+  await initDb();
+  const db = await getDb();
+  const row = await db.getFirstAsync<{
+    count: number;
+    current_set: number;
+    completed_sets: number;
+    goal: number;
+    tasbeeh_name: string;
+    haptic_enabled: number;
+  }>("SELECT count, current_set, completed_sets, goal, tasbeeh_name, haptic_enabled FROM active_state WHERE id = 'active'");
+  
+  if (!row) return null;
+  return {
+    count: Number(row.count),
+    currentSet: Number(row.current_set),
+    completedSets: Number(row.completed_sets),
+    goal: Number(row.goal),
+    tasbeehName: row.tasbeeh_name,
+    hapticEnabled: Boolean(row.haptic_enabled),
+  };
+}
+
+export async function saveActiveState(state: ActiveState): Promise<void> {
+  await initDb();
+  const db = await getDb();
+  await db.runAsync(
+    `INSERT OR REPLACE INTO active_state (id, count, current_set, completed_sets, goal, tasbeeh_name, haptic_enabled)
+     VALUES ('active', ?, ?, ?, ?, ?, ?)`,
+    state.count,
+    state.currentSet,
+    state.completedSets,
+    state.goal,
+    state.tasbeehName,
+    state.hapticEnabled ? 1 : 0
+  );
 }

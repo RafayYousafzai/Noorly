@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useRef, useEffect } from "react";
 import * as Haptics from "expo-haptics";
 import { Alert } from "react-native";
-import { addHistoryEntry } from "@/utils/tasbeeh-store";
+import { addHistoryEntry, getActiveState, saveActiveState } from "@/utils/tasbeeh-store";
 
 type CounterContextType = {
   count: number;
@@ -26,6 +26,37 @@ export function CounterProvider({ children }: { children: React.ReactNode }) {
   const [completedSets, setCompletedSets] = useState(0);
   const [goal, setGoal] = useState(100);
   const [tasbeehName, setTasbeehName] = useState("SubhanAllah");
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    async function loadState() {
+      try {
+        const saved = await getActiveState();
+        if (saved) {
+          setCount(saved.count);
+          setCurrentSet(saved.currentSet);
+          setCompletedSets(saved.completedSets);
+          setGoal(saved.goal);
+          setTasbeehName(saved.tasbeehName);
+          setHapticEnabled(saved.hapticEnabled);
+        }
+      } catch (e) {}
+      setIsReady(true);
+    }
+    loadState();
+  }, []);
+
+  useEffect(() => {
+    if (!isReady) return;
+    saveActiveState({
+      count,
+      currentSet,
+      completedSets,
+      goal,
+      tasbeehName,
+      hapticEnabled,
+    }).catch(() => {});
+  }, [count, currentSet, completedSets, goal, tasbeehName, hapticEnabled, isReady]);
 
   const completionLockRef = useRef(false);
   const totalSets = 5;
