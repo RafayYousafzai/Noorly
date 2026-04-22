@@ -1,56 +1,96 @@
-# Welcome to your Expo app 👋
+# ✨ Noorly | نورلي 
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**Noorly** is a premium, modern digital Tasbeeh counter and dhikr companion built with Expo and React Native. Designed for serenity and focus, it blends elegant glassmorphism aesthetics with powerful tracking features to help you maintain your daily spiritual journey.
 
-## Get started
+---
 
-1. Install dependencies
+## 📱 Features
 
+- **🏛️ Tasbeeh Library**: Manage your personal collection of dhikr. Create, edit, and categorize your prayers with custom goals (33, 99, or more).
+- **🔢 Interactive Counter**: A high-performance counter featuring haptic feedback and real-time set tracking.
+- **🖥️ Fullscreen Mode**: Minimize distractions with an immersive, minimal counting interface.
+- **📊 Detailed History**: Track your progress over time with a session history powered by localized SQLite storage.
+- **🎨 Premium UI/UX**: 
+  - Dark-mode first design for eye comfort.
+  - Stunning Glassmorphism effects.
+  - Smooth micro-animations using React Native Reanimated.
+- **📳 Haptic Experience**: Physical tactile feedback for every tap, ensuring you never miss a count.
+
+---
+
+## 📸 Screenshots
+
+| Library | Global Counter | Immersive Mode |
+| :---: | :---: | :---: |
+| ![Library](assets/screenshots/library.png) | ![Counter](assets/screenshots/counter.png) | ![Counter](assets/screenshots/history.png) | ![Fullscreen](assets/screenshots/fullscreen.png) |
+
+---
+
+## 🛠️ Tech Stack
+
+- **Framework**: [Expo](https://expo.dev/) (SDK 55)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Navigation**: [Expo Router](https://docs.expo.dev/router/introduction/) (File-based)
+- **Database**: [Expo SQLite](https://docs.expo.dev/versions/latest/sdk/sqlite/)
+- **Animations**: [React Native Reanimated](https://docs.swmansion.com/react-native-reanimated/)
+- **Visuals**: `expo-glass-effect`, `expo-symbols`
+- **Haptics**: `expo-haptics`
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (LTS)
+- [Bun](https://bun.sh/) (Recommended) or npm
+- [Expo Go](https://expo.dev/go) on your mobile device (for testing)
+
+### Installation
+
+1. **Clone the repository**:
    ```bash
+   git clone https://github.com/yourusername/noorly.git
+   cd noorly
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   bun install
+   # or
    npm install
    ```
 
-2. Start the app
-
+3. **Start the development server**:
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+4. **Run on your device**:
+   Scan the QR code with your Expo Go app (Android) or Camera app (iOS).
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## 📂 Project Structure
 
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```text
+src/
+├── app/              # Expo Router pages (Tabs & Modals)
+├── components/       # Reusable UI components
+├── context/          # State management (Tasbeeh contexts)
+├── hooks/            # Custom React hooks (SQLite, Haptics)
+├── constants/        # Theme & App configuration
+└── utils/            # Helper functions
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-### Other setup steps
+## 📄 License
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Learn more
+---
 
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+<p align="center">
+  Built with ❤️ for the Ummah.
+</p>
