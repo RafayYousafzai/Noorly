@@ -18,9 +18,10 @@ export default function RootLayout() {
         <AnimatedSplashOverlay />
         <Stack screenOptions={{ headerShown: false, animation: "none" }}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="index" />
           <Stack.Screen
             name="fullscreen-counter"
-            options={{ presentation: "fullScreenModal", headerShown: false }}
+            options={{ headerShown: false }}
           />
         </Stack>
       </CounterProvider>
