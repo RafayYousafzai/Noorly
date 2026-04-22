@@ -1,3 +1,4 @@
+import { useCounter } from "@/context/CounterContext";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -10,7 +11,6 @@ import {
   Text,
   View,
 } from "react-native";
-import { useCounter } from "@/context/CounterContext";
 
 // Hardcoded Theme to match Library exactly
 const COLORS = {
@@ -88,7 +88,7 @@ function IconButton({
     if (hapticEnabled) {
       try {
         await Haptics.selectionAsync();
-      } catch (e) {}
+      } catch (e) { }
     }
     onPress?.();
   };

@@ -4,7 +4,7 @@
     "slug": "noorly",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/global-logo.png",
     "scheme": "noorly",
     "userInterfaceStyle": "automatic",
     "ios": {
