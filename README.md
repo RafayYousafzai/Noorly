@@ -20,8 +20,8 @@
 
 ## 📸 Screenshots
 
-| Library | Global Counter | Immersive Mode |
-| :---: | :---: | :---: |
+| Library | Global Counter | History | Immersive Mode |
+| :---: | :---: | :---: | :---: |
 | ![Library](assets/screenshots/library.png) | ![Counter](assets/screenshots/counter.png) | ![Counter](assets/screenshots/history.png) | ![Fullscreen](assets/screenshots/fullscreen.png) |
 
 ---
