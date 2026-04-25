@@ -1,18 +1,24 @@
-import React, { createContext, useContext, useState, useRef, useEffect } from "react";
+import {
+  addHistoryEntry,
+  getActiveState,
+  saveActiveState,
+} from "@/utils/tasbeeh-store";
 import * as Haptics from "expo-haptics";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { Alert } from "react-native";
-import { addHistoryEntry, getActiveState, saveActiveState } from "@/utils/tasbeeh-store";
 
 type CounterContextType = {
   count: number;
   currentSet: number;
   completedSets: number;
+  isGoalReached: boolean;
   goal: number;
   tasbeehName: string;
   hapticEnabled: boolean;
   setGoal: (goal: number) => void;
   setTasbeehName: (name: string) => void;
   handleIncrement: () => Promise<void>;
+  handleStartNewCount: () => Promise<void>;
   handleReset: () => Promise<void>;
   handleHapticToggle: () => Promise<void>;
 };
@@ -24,6 +30,7 @@ export function CounterProvider({ children }: { children: React.ReactNode }) {
   const [hapticEnabled, setHapticEnabled] = useState(true);
   const [currentSet, setCurrentSet] = useState(1);
   const [completedSets, setCompletedSets] = useState(0);
+  const [isGoalReached, setIsGoalReached] = useState(false);
   const [goal, setGoal] = useState(100);
   const [tasbeehName, setTasbeehName] = useState("SubhanAllah");
   const [isReady, setIsReady] = useState(false);
@@ -39,6 +46,7 @@ export function CounterProvider({ children }: { children: React.ReactNode }) {
           setGoal(saved.goal);
           setTasbeehName(saved.tasbeehName);
           setHapticEnabled(saved.hapticEnabled);
+          setIsGoalReached(saved.completedSets > 0 && saved.count === 0);
         }
       } catch (e) {}
       setIsReady(true);
@@ -56,10 +64,15 @@ export function CounterProvider({ children }: { children: React.ReactNode }) {
       tasbeehName,
       hapticEnabled,
     }).catch(() => {});
-  }, [count, currentSet, completedSets, goal, tasbeehName, hapticEnabled, isReady]);
-
-  const completionLockRef = useRef(false);
-  const totalSets = 5;
+  }, [
+    count,
+    currentSet,
+    completedSets,
+    goal,
+    tasbeehName,
+    hapticEnabled,
+    isReady,
+  ]);
 
   const addToHistory = async (eventType: "manual-reset" | "goal-complete") => {
     try {
@@ -77,34 +90,27 @@ export function CounterProvider({ children }: { children: React.ReactNode }) {
   };
 
   const handleIncrement = async () => {
-    if (completionLockRef.current || count >= goal) {
-      return;
+    if (isGoalReached && count === 0) {
+      // User started the next set, so switch action button back to Reset.
+      setIsGoalReached(false);
     }
 
     const newCount = count + 1;
-    setCount(newCount);
-
     if (newCount >= goal) {
-      completionLockRef.current = true;
-      try {
-        await addToHistory("goal-complete");
-      } catch {}
+      setCount(0);
+      setCompletedSets((prev) => prev + 1);
+      setCurrentSet((prev) => prev + 1);
+      setIsGoalReached(true);
 
       if (hapticEnabled) {
         try {
           await Haptics.notificationAsync(
-            Haptics.NotificationFeedbackType.Success
+            Haptics.NotificationFeedbackType.Success,
           );
         } catch (e) {}
       }
-
-      setTimeout(() => {
-        setCount(0);
-        setCompletedSets((prev) => prev + 1);
-        setCurrentSet((prev) => (prev < totalSets ? prev + 1 : 1));
-        completionLockRef.current = false;
-      }, 700);
     } else {
+      setCount(newCount);
       if (hapticEnabled) {
         try {
           await Haptics.selectionAsync();
@@ -113,30 +119,55 @@ export function CounterProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const handleStartNewCount = async () => {
+    const hasProgress = count > 0 || completedSets > 0;
+    if (hasProgress) {
+      const eventType = completedSets > 0 ? "goal-complete" : "manual-reset";
+      try {
+        await addToHistory(eventType);
+      } catch {}
+    }
+
+    setCount(0);
+    setCurrentSet(1);
+    setCompletedSets(0);
+    setIsGoalReached(false);
+
+    if (hapticEnabled) {
+      try {
+        await Haptics.selectionAsync();
+      } catch (e) {}
+    }
+  };
+
   const handleReset = async () => {
-    Alert.alert("Reset Counter", "Are you sure you want to reset the current set?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Reset",
-        style: "destructive",
-        onPress: async () => {
-          completionLockRef.current = false;
-          if (count > 0) {
-            await addToHistory("manual-reset");
-          }
-          setCount(0);
-          setCurrentSet(1);
-          setCompletedSets(0);
-          if (hapticEnabled) {
-            try {
-              await Haptics.notificationAsync(
-                Haptics.NotificationFeedbackType.Warning
-              );
-            } catch (e) {}
-          }
+    Alert.alert(
+      "Reset Counter",
+      "Are you sure you want to reset the current set?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Reset",
+          style: "destructive",
+          onPress: async () => {
+            setIsGoalReached(false);
+            if (count > 0 || completedSets > 0) {
+              await addToHistory("manual-reset");
+            }
+            setCount(0);
+            setCurrentSet(1);
+            setCompletedSets(0);
+            if (hapticEnabled) {
+              try {
+                await Haptics.notificationAsync(
+                  Haptics.NotificationFeedbackType.Warning,
+                );
+              } catch (e) {}
+            }
+          },
         },
-      },
-    ]);
+      ],
+    );
   };
 
   const handleHapticToggle = async () => {
@@ -152,12 +183,14 @@ export function CounterProvider({ children }: { children: React.ReactNode }) {
         count,
         currentSet,
         completedSets,
+        isGoalReached,
         goal,
         tasbeehName,
         hapticEnabled,
         setGoal,
         setTasbeehName,
         handleIncrement,
+        handleStartNewCount,
         handleReset,
         handleHapticToggle,
       }}

@@ -48,7 +48,7 @@ const INITIAL_TASBEEH_DATA = [
 
 // Hardcoded Theme
 const COLORS = {
-  background: "#0F1115",
+  background: "#000",
   card: "#16191E",
   border: "#2C3033",
   buttonBg: "#23272F",
@@ -150,7 +150,7 @@ export default function LibraryScreen() {
       >
         <View style={styles.headerSection}>
           <Text style={styles.mainTitle}>Explore Library</Text>
-          <Text style={styles.subtitle}>Manage your tasbeeh collection</Text>
+          {/* <Text style={styles.subtitle}>Manage your tasbeeh collection</Text> */}
         </View>
         {/* Search Bar */}
         <View style={styles.searchContainer}>
@@ -248,7 +248,11 @@ export default function LibraryScreen() {
                     style={styles.iconBtn}
                     onPress={() => handleEdit(item)}
                   >
-                    <MaterialIcons name="edit" size={22} color="#00E5FF" />
+                    <MaterialIcons
+                      name="edit"
+                      size={22}
+                      color={COLORS.accent}
+                    />
                   </Pressable>
                 </View>
 
@@ -284,7 +288,6 @@ export default function LibraryScreen() {
             }}
           >
             <MaterialIcons name="add" size={24} color="#000" />
-            <ThemedText style={styles.createButtonText}>Create New</ThemedText>
           </Pressable>
         </View>
       )}
@@ -295,7 +298,7 @@ export default function LibraryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0F1115",
+    backgroundColor: COLORS.background,
   },
   topBar: {
     flexDirection: "row",
@@ -324,7 +327,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: "bold",
     color: COLORS.textMain,
-    marginBottom: 5,
+    marginBottom: 20,
   },
   subtitle: {
     fontSize: 14,
@@ -333,7 +336,7 @@ const styles = StyleSheet.create({
   },
 
   subLabel: {
-    color: "#00E5FF",
+    color: COLORS.accent,
     fontSize: 12,
     fontWeight: "700",
     letterSpacing: 2,
@@ -349,7 +352,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#16191E",
-    borderRadius: 12,
+    borderRadius: 24,
     paddingHorizontal: 15,
     height: 50,
     marginBottom: 20,
@@ -379,7 +382,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   formTitle: {
-    color: "#00E5FF",
+    color: COLORS.accent,
     fontSize: 18,
     fontWeight: "bold",
   },
@@ -418,7 +421,7 @@ const styles = StyleSheet.create({
   },
   formSaveBtn: {
     flex: 1,
-    backgroundColor: "#00E5FF",
+    backgroundColor: COLORS.accent,
     padding: 15,
     borderRadius: 12,
     alignItems: "center",
@@ -451,12 +454,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   goalText: {
-    color: "#00E5FF",
+    color: COLORS.accent,
     fontSize: 12,
     fontWeight: "600",
   },
   arabicText: {
-    color: "#00E5FF",
+    color: COLORS.accent,
     fontSize: 26,
     fontWeight: "bold",
   },
@@ -490,7 +493,7 @@ const styles = StyleSheet.create({
   startJourneyBtn: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#00E5FF",
+    backgroundColor: COLORS.accent,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 12,
@@ -512,23 +515,22 @@ const styles = StyleSheet.create({
   floatingButtonContainer: {
     position: "absolute",
     bottom: 30,
-    left: 0,
-    right: 0,
+    right: 25,
     alignItems: "center",
   },
   createButton: {
     flexDirection: "row",
-    backgroundColor: "#00E5FF",
-    paddingHorizontal: 25,
+    backgroundColor: COLORS.accent,
+    paddingHorizontal: 15,
     paddingVertical: 15,
     borderRadius: 30,
     alignItems: "center",
     gap: 8,
-    shadowColor: "#00E5FF",
+    shadowColor: COLORS.background,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 10,
   },
   createButtonText: {
     color: "#000",

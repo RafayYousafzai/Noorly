@@ -14,7 +14,7 @@ import {
 
 // Hardcoded Theme to match Library exactly
 const COLORS = {
-  background: "#0F1115",
+  background: "#000",
   card: "#16191E",
   border: "#2C3033",
   buttonBg: "#23272F",
@@ -88,7 +88,7 @@ function IconButton({
     if (hapticEnabled) {
       try {
         await Haptics.selectionAsync();
-      } catch (e) { }
+      } catch (e) {}
     }
     onPress?.();
   };
@@ -128,10 +128,12 @@ export default function CounterScreen() {
     goal,
     tasbeehName,
     currentSet,
+    isGoalReached,
     hapticEnabled,
     setGoal,
     setTasbeehName,
     handleIncrement,
+    handleStartNewCount,
     handleReset,
     handleHapticToggle,
   } = useCounter();
@@ -148,7 +150,6 @@ export default function CounterScreen() {
     }
   }, [params.tasbeehName, params.tasbeehGoal, setTasbeehName, setGoal]);
 
-
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerSection}>
@@ -161,7 +162,7 @@ export default function CounterScreen() {
         <Text style={styles.mainTitle} numberOfLines={1} adjustsFontSizeToFit>
           {tasbeehName}
         </Text>
-        <Text style={styles.subtitle}>Glory be to Allah</Text>
+        {/* <Text style={styles.subtitle}>Glory be to Allah</Text> */}
       </View>
 
       <View style={styles.centerDisplay}>
@@ -206,9 +207,9 @@ export default function CounterScreen() {
         {/* Action Buttons */}
         <View style={styles.actionButtonsRow}>
           <IconButton
-            icon="refresh"
-            label="Reset"
-            onPress={handleReset}
+            icon={isGoalReached ? "playlist-add" : "refresh"}
+            label={isGoalReached ? "New Count" : "Reset"}
+            onPress={isGoalReached ? handleStartNewCount : handleReset}
             hapticEnabled={hapticEnabled}
           />
           <IconButton
@@ -294,6 +295,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: "100%",
     backgroundColor: "rgba(0, 229, 255, 0.15)", // Subtle fill color
+    borderRadius: 200,
   },
   setIndicator: {
     position: "absolute",

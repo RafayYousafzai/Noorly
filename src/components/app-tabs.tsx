@@ -13,8 +13,7 @@ export default function AppTabs() {
       backgroundColor={colors.background}
       indicatorColor={colors.backgroundElement}
       labelStyle={{ selected: { color: colors.text } }}
-    // labelVisibilityMode="selected"
-
+      // labelVisibilityMode="selected"
     >
       {/* <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
@@ -35,7 +34,7 @@ export default function AppTabs() {
       <NativeTabs.Trigger name="counter">
         <NativeTabs.Trigger.Label>Counter</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
-          src={require("@/assets/images/tabIcons/heart.png")}
+          src={require("@/assets/images/tabIcons/home.png")}
           renderingMode="template"
         />
       </NativeTabs.Trigger>

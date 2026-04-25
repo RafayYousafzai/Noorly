@@ -1,5 +1,7 @@
-import { MaterialIcons } from "@expo/vector-icons";
+import { useCounter } from "@/context/CounterContext";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import React from "react";
 import {
   Platform,
@@ -9,8 +11,6 @@ import {
   Text,
   View,
 } from "react-native";
-import { StatusBar } from "expo-status-bar";
-import { useCounter } from "@/context/CounterContext";
 
 export default function FullscreenCounterScreen() {
   const router = useRouter();
@@ -26,13 +26,16 @@ export default function FullscreenCounterScreen() {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <Pressable onPress={handleMinimize} style={styles.minimizeBtn}>
-            <MaterialIcons name="close-fullscreen" size={28} color="#FFFFFF" />
+            <Image
+              source={require("@/assets/images/tabIcons/minimize.png")}
+              style={{ width: 20, height: 20 }}
+            />
           </Pressable>
         </View>
 
         <View style={styles.centerContainer}>
           <Text style={styles.countText}>{count}</Text>
-          
+
           {/* Subtle goal and sets indicator */}
           <View style={styles.subtleInfoContainer}>
             <Text style={styles.subtleText}>Set {currentSet}</Text>
@@ -69,7 +72,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: -80,
+    marginTop: -160,
   },
   countText: {
     fontSize: 140,

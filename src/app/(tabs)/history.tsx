@@ -21,7 +21,7 @@ import {
 
 // Hardcoded Theme to match Library and Counter exactly
 const COLORS = {
-  background: "#0F1115",
+  background: "#000",
   card: "#16191E",
   border: "#2C3033",
   buttonBg: "#23272F",
@@ -105,7 +105,7 @@ export default function HistoryScreen() {
         ListHeaderComponent={
           <View style={styles.headerSection}>
             <Text style={styles.mainTitle}>History</Text>
-            <Text style={styles.subtitle}>Completed and reset sessions</Text>
+            {/* <Text style={styles.subtitle}>Completed and reset sessions</Text> */}
 
             {/* Dashboard Stats */}
             <View style={styles.statsRow}>
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: "bold",
     color: COLORS.textMain,
-    marginBottom: 5,
+    marginBottom: 20,
   },
   subtitle: {
     fontSize: 14,
