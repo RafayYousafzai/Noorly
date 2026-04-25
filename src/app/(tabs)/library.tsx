@@ -28,14 +28,14 @@ const INITIAL_TASBEEH_DATA = [
     title: "Alhamdulillah",
     arabic: "ٱلْحَمْدُ لِلَّٰهِ",
     translation: "Praise be to Allah",
-    count: "99",
+    count: "33",
   },
   {
     id: "3",
     title: "Allahu Akbar",
     arabic: "ٱللَّٰهُ أَكْبَرُ",
     translation: "Allah is the Greatest",
-    count: "33",
+    count: "34",
   },
   {
     id: "4",
