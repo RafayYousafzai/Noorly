@@ -28,11 +28,16 @@ function CircleProgressDisplay({
   const handlePress = async () => {
     if (hapticEnabled) {
       try {
-        // selectionAsync is vastly superior for Android fast-tapping.
-        // It provides a crisp "tick" instead of a muddy buzz.
-        await Haptics.selectionAsync();
+        if (Platform.OS === "android") {
+          // Clock_Tick is the sharpest, most "native" feeling tick on modern Android (Pixel/OnePlus).
+          // It uses the dedicated haptic engine rather than a generic vibration motor.
+          await Haptics.performAndroidHapticsAsync(Haptics.AndroidHaptics.Clock_Tick);
+        } else {
+          await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        }
       } catch (e) {
-        // Haptics not available
+        // Fallback if the specific native tick isn't available
+        Haptics.selectionAsync().catch(() => {});
       }
     }
     onPress?.();
@@ -81,7 +86,11 @@ function IconButton({
   const handlePress = async () => {
     if (hapticEnabled) {
       try {
-        await Haptics.selectionAsync();
+        if (Platform.OS === "android") {
+          await Haptics.performAndroidHapticsAsync(Haptics.AndroidHaptics.Keyboard_Tap);
+        } else {
+          await Haptics.selectionAsync();
+        }
       } catch (e) {}
     }
     onPress?.();

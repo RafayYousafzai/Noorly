@@ -5,7 +5,7 @@ import {
 } from "@/utils/tasbeeh-store";
 import * as Haptics from "expo-haptics";
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { Alert } from "react-native";
+import { Alert, Platform } from "react-native";
 
 type CounterContextType = {
   count: number;
@@ -104,18 +104,15 @@ export function CounterProvider({ children }: { children: React.ReactNode }) {
 
       if (hapticEnabled) {
         try {
-          await Haptics.notificationAsync(
-            Haptics.NotificationFeedbackType.Success,
-          );
+          if (Platform.OS === "android") {
+            await Haptics.performAndroidHapticsAsync(Haptics.AndroidHaptics.Confirm);
+          } else {
+            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          }
         } catch (e) {}
       }
     } else {
       setCount(newCount);
-      if (hapticEnabled) {
-        try {
-          await Haptics.selectionAsync();
-        } catch (e) {}
-      }
     }
   };
 
@@ -132,12 +129,6 @@ export function CounterProvider({ children }: { children: React.ReactNode }) {
     setCurrentSet(1);
     setCompletedSets(0);
     setIsGoalReached(false);
-
-    if (hapticEnabled) {
-      try {
-        await Haptics.selectionAsync();
-      } catch (e) {}
-    }
   };
 
   const handleReset = async () => {
@@ -159,9 +150,11 @@ export function CounterProvider({ children }: { children: React.ReactNode }) {
             setCompletedSets(0);
             if (hapticEnabled) {
               try {
-                await Haptics.notificationAsync(
-                  Haptics.NotificationFeedbackType.Warning,
-                );
+                if (Platform.OS === "android") {
+                  await Haptics.performAndroidHapticsAsync(Haptics.AndroidHaptics.Reject);
+                } else {
+                  await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                }
               } catch (e) {}
             }
           },
@@ -172,9 +165,6 @@ export function CounterProvider({ children }: { children: React.ReactNode }) {
 
   const handleHapticToggle = async () => {
     setHapticEnabled((prev) => !prev);
-    try {
-      await Haptics.selectionAsync();
-    } catch (e) {}
   };
 
   return (

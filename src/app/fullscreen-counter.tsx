@@ -11,6 +11,7 @@ import {
   Text,
   View,
 } from "react-native";
+import * as Haptics from "expo-haptics";
 
 import { useTheme } from "@/hooks/use-theme";
 
@@ -18,14 +19,36 @@ export default function FullscreenCounterScreen() {
   const colors = useTheme();
   const styles = getStyles(colors);
   const router = useRouter();
-  const { count, handleIncrement, goal, currentSet } = useCounter();
+  const { count, handleIncrement, goal, currentSet, hapticEnabled } = useCounter();
+
+  const handlePress = async () => {
+    if (hapticEnabled) {
+      try {
+        if (Platform.OS === "android") {
+          await Haptics.performAndroidHapticsAsync(Haptics.AndroidHaptics.Clock_Tick);
+        } else {
+          await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        }
+      } catch (e) {
+        Haptics.selectionAsync().catch(() => {});
+      }
+    }
+    handleIncrement();
+  };
 
   const handleMinimize = () => {
+    if (hapticEnabled) {
+      if (Platform.OS === "android") {
+        Haptics.performAndroidHapticsAsync(Haptics.AndroidHaptics.Keyboard_Tap).catch(() => {});
+      } else {
+        Haptics.selectionAsync().catch(() => {});
+      }
+    }
     router.back();
   };
 
   return (
-    <Pressable style={styles.container} onPress={handleIncrement}>
+    <Pressable style={styles.container} onPress={handlePress}>
       <StatusBar style="auto" hidden={true} />
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
