@@ -12,7 +12,11 @@ import {
   View,
 } from "react-native";
 
+import { useTheme } from "@/hooks/use-theme";
+
 export default function FullscreenCounterScreen() {
+  const colors = useTheme();
+  const styles = getStyles(colors);
   const router = useRouter();
   const { count, handleIncrement, goal, currentSet } = useCounter();
 
@@ -22,7 +26,7 @@ export default function FullscreenCounterScreen() {
 
   return (
     <Pressable style={styles.container} onPress={handleIncrement}>
-      <StatusBar style="light" hidden={true} />
+      <StatusBar style="auto" hidden={true} />
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <Pressable onPress={handleMinimize} style={styles.minimizeBtn}>
@@ -48,10 +52,10 @@ export default function FullscreenCounterScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000000",
+    backgroundColor: colors.background,
   },
   safeArea: {
     flex: 1,
@@ -64,7 +68,7 @@ const styles = StyleSheet.create({
   },
   minimizeBtn: {
     padding: 12,
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    backgroundColor: colors.backgroundElement,
     borderRadius: 30,
     zIndex: 10,
   },
@@ -77,7 +81,7 @@ const styles = StyleSheet.create({
   countText: {
     fontSize: 140,
     fontWeight: "bold",
-    color: "#FFFFFF",
+    color: colors.accent,
     textAlign: "center",
   },
   subtleInfoContainer: {
@@ -88,13 +92,13 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   subtleText: {
-    color: "#FFFFFF",
+    color: colors.text,
     fontSize: 14,
     fontWeight: "600",
     letterSpacing: 1,
   },
   subtleSeparator: {
-    color: "#FFFFFF",
+    color: colors.textSecondary,
     fontSize: 14,
     marginHorizontal: 10,
   },

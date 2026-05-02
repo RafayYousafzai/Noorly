@@ -7,11 +7,15 @@ type Props = PropsWithChildren<{
   onClose: () => void;
 }>;
 
+import { useTheme } from "@/hooks/use-theme";
+
 export default function CreateTasbeehModal({
   isVisible,
   children,
   onClose,
 }: Props) {
+  const colors = useTheme();
+  const styles = getStyles(colors);
   return (
     <Modal animationType="slide" transparent={true} visible={isVisible}>
       {/* Semi-transparent overlay */}
@@ -20,7 +24,7 @@ export default function CreateTasbeehModal({
           <View style={styles.titleContainer}>
             <Text style={styles.title}>Create New Tasbeeh</Text>
             <Pressable onPress={onClose}>
-              <MaterialIcons name="close" color="#fff" size={22} />
+              <MaterialIcons name="close" color={colors.text} size={22} />
             </Pressable>
           </View>
           {/* Modal Content goes here */}
@@ -31,7 +35,7 @@ export default function CreateTasbeehModal({
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any) => StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -40,7 +44,7 @@ const styles = StyleSheet.create({
   modalContent: {
     height: "40%", // Slightly taller for form inputs
     width: "100%",
-    backgroundColor: "#1A1C1E", // Dark theme background
+    backgroundColor: colors.backgroundElement, // Dark theme background
     borderTopRightRadius: 24,
     borderTopLeftRadius: 24,
     position: "absolute",
@@ -55,10 +59,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     borderBottomWidth: 1,
-    borderBottomColor: "#2C3033",
+    borderBottomColor: colors.backgroundSelected,
   },
   title: {
-    color: "#fff",
+    color: colors.text,
     fontSize: 18,
     fontWeight: "600",
   },

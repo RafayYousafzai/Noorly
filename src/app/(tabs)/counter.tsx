@@ -12,17 +12,7 @@ import {
   View,
 } from "react-native";
 
-// Hardcoded Theme to match Library exactly
-const COLORS = {
-  background: "#000",
-  card: "#16191E",
-  border: "#2C3033",
-  buttonBg: "#23272F",
-  accent: "#00E5FF",
-  textMain: "#FFFFFF",
-  textMuted: "#888888",
-  glowBg: "rgba(0, 229, 255, 0.1)",
-};
+import { useTheme } from "@/hooks/use-theme";
 
 function CircleProgressDisplay({
   count,
@@ -30,7 +20,9 @@ function CircleProgressDisplay({
   onPress,
   hapticEnabled,
   setNumber,
+  colors,
 }: any) {
+  const styles = getStyles(colors);
   const progress = Math.min(count / goal, 1);
 
   const handlePress = async () => {
@@ -83,7 +75,9 @@ function IconButton({
   onPress,
   variant = "default",
   hapticEnabled = true,
+  colors,
 }: any) {
+  const styles = getStyles(colors);
   const handlePress = async () => {
     if (hapticEnabled) {
       try {
@@ -107,9 +101,9 @@ function IconButton({
       <MaterialIcons
         name={icon}
         size={22}
-        color={isPrimary ? "#000" : COLORS.textMain}
+        color={isPrimary ? colors.background : colors.text}
       />
-      <Text style={[styles.iconButtonText, isPrimary && { color: "#000" }]}>
+      <Text style={[styles.iconButtonText, isPrimary && { color: colors.background }]}>
         {label}
       </Text>
     </Pressable>
@@ -117,6 +111,8 @@ function IconButton({
 }
 
 export default function CounterScreen() {
+  const colors = useTheme();
+  const styles = getStyles(colors);
   const router = useRouter();
   const params = useLocalSearchParams<{
     tasbeehName?: string;
@@ -172,6 +168,7 @@ export default function CounterScreen() {
           onPress={handleIncrement}
           hapticEnabled={hapticEnabled}
           setNumber={currentSet}
+          colors={colors}
         />
       </View>
 
@@ -182,12 +179,12 @@ export default function CounterScreen() {
             <MaterialIcons
               name={hapticEnabled ? "vibration" : "smartphone"}
               size={16}
-              color={hapticEnabled ? COLORS.accent : COLORS.textMuted}
+              color={hapticEnabled ? colors.accent : colors.textSecondary}
             />
             <Text
               style={[
                 styles.infoText,
-                hapticEnabled && { color: COLORS.accent },
+                hapticEnabled && { color: colors.accent },
               ]}
             >
               Haptics {hapticEnabled ? "On" : "Off"}
@@ -198,7 +195,7 @@ export default function CounterScreen() {
             <MaterialIcons
               name="track-changes"
               size={16}
-              color={COLORS.textMuted}
+              color={colors.textSecondary}
             />
             <Text style={styles.infoText}>Target: {goal}</Text>
           </View>
@@ -211,6 +208,7 @@ export default function CounterScreen() {
             label={isGoalReached ? "New Count" : "Reset"}
             onPress={isGoalReached ? handleStartNewCount : handleReset}
             hapticEnabled={hapticEnabled}
+            colors={colors}
           />
           <IconButton
             icon="open-in-full"
@@ -218,6 +216,7 @@ export default function CounterScreen() {
             variant="primary"
             onPress={() => router.push("/fullscreen-counter")}
             hapticEnabled={hapticEnabled}
+            colors={colors}
           />
         </View>
       </View>
@@ -225,10 +224,10 @@ export default function CounterScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: colors.background,
     justifyContent: "space-between",
     paddingBottom: Platform.OS === "android" ? 20 : 0,
   },
@@ -250,17 +249,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "700",
     letterSpacing: 2,
-    color: COLORS.accent,
+    color: colors.accent,
   },
   mainTitle: {
     fontSize: 38,
     fontWeight: "bold",
-    color: COLORS.textMain,
+    color: colors.text,
     textAlign: "center",
   },
   subtitle: {
     fontSize: 16,
-    color: COLORS.textMuted,
+    color: colors.textSecondary,
     marginTop: 5,
   },
 
@@ -278,14 +277,14 @@ const styles = StyleSheet.create({
     width: 280,
     height: 280,
     borderRadius: 140,
-    backgroundColor: COLORS.card,
+    backgroundColor: colors.backgroundElement,
     borderWidth: 0,
-    // borderColor: COLORS.border,
+    // borderColor: colors.backgroundSelected,
     overflow: "hidden",
     alignItems: "center",
     justifyContent: "center",
-    elevation: 50,
-    shadowColor: COLORS.accent,
+    elevation: 10,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.1,
     shadowRadius: 20,
@@ -294,13 +293,13 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     width: "100%",
-    backgroundColor: "rgba(0, 229, 255, 0.15)", // Subtle fill color
+    backgroundColor: colors.backgroundSelected, // Subtle fill color
     borderRadius: 200,
   },
   setIndicator: {
     position: "absolute",
     top: 25,
-    backgroundColor: COLORS.glowBg,
+    backgroundColor: colors.backgroundSelected,
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 20,
@@ -308,7 +307,7 @@ const styles = StyleSheet.create({
   setIndicatorText: {
     fontSize: 12,
     fontWeight: "700",
-    color: COLORS.accent,
+    color: colors.accent,
   },
   circleCenterContent: {
     alignItems: "center",
@@ -317,13 +316,13 @@ const styles = StyleSheet.create({
   counterNumber: {
     fontSize: 84,
     fontWeight: "bold",
-    color: COLORS.accent,
+    color: colors.accent,
     lineHeight: 90,
   },
   counterLabel: {
     fontSize: 12,
     letterSpacing: 2,
-    color: COLORS.textMain,
+    color: colors.text,
     marginTop: 5,
   },
 
@@ -341,7 +340,7 @@ const styles = StyleSheet.create({
   infoPill: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: COLORS.card,
+    backgroundColor: colors.backgroundElement,
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
@@ -350,7 +349,7 @@ const styles = StyleSheet.create({
   infoText: {
     fontSize: 13,
     fontWeight: "600",
-    color: COLORS.textMuted,
+    color: colors.textSecondary,
   },
   actionButtonsRow: {
     flexDirection: "row",
@@ -359,7 +358,7 @@ const styles = StyleSheet.create({
   iconButton: {
     flex: 1,
     flexDirection: "row",
-    backgroundColor: COLORS.buttonBg,
+    backgroundColor: colors.backgroundElement,
     borderRadius: 16,
     paddingVertical: 15,
     alignItems: "center",
@@ -367,11 +366,11 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   iconButtonPrimary: {
-    backgroundColor: COLORS.accent,
+    backgroundColor: colors.accent,
   },
   iconButtonText: {
     fontSize: 14,
     fontWeight: "700",
-    color: COLORS.textMain,
+    color: colors.text,
   },
 });

@@ -11,9 +11,17 @@ export default function AppTabs() {
   return (
     <NativeTabs
       backgroundColor={colors.background}
-      indicatorColor={colors.backgroundElement}
-      labelStyle={{ selected: { color: colors.text } }}
-      // labelVisibilityMode="selected"
+      indicatorColor={colors.backgroundSelected}
+      tintColor={colors.accent}
+      iconColor={{
+        default: colors.textSecondary,
+        selected: colors.accent,
+      }}
+      labelStyle={{
+        default: { color: colors.textSecondary, fontSize: 12 },
+        selected: { color: colors.accent, fontSize: 12 },
+      }}
+      rippleColor={colors.accent}
     >
       {/* <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>

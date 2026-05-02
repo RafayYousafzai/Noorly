@@ -5,7 +5,7 @@
 
 import '@/global.css';
 
-import { Platform } from 'react-native';
+import { Platform, PlatformColor } from 'react-native';
 
 export const Colors = {
   light: {
@@ -14,6 +14,9 @@ export const Colors = {
     backgroundElement: '#F0F0F3',
     backgroundSelected: '#E0E1E6',
     textSecondary: '#60646C',
+    accent: Platform.OS === 'android' && Platform.Version >= 31 
+      ? PlatformColor('@android:color/system_accent1_500') 
+      : '#0a7ea4',
   },
   dark: {
     text: '#ffffff',
@@ -21,6 +24,9 @@ export const Colors = {
     backgroundElement: '#212225',
     backgroundSelected: '#2E3135',
     textSecondary: '#B0B4BA',
+    accent: Platform.OS === 'android' && Platform.Version >= 31 
+      ? PlatformColor('@android:color/system_accent1_200') 
+      : '#4A98E9',
   },
 } as const;
 

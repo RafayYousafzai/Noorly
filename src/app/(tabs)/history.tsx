@@ -19,21 +19,11 @@ import {
   type HistoryEntry,
 } from "@/utils/tasbeeh-store";
 
-// Hardcoded Theme to match Library and Counter exactly
-const COLORS = {
-  background: "#000",
-  card: "#16191E",
-  border: "#2C3033",
-  buttonBg: "#23272F",
-  accent: "#00E5FF",
-  textMain: "#FFFFFF",
-  textMuted: "#888888",
-  glowBg: "rgba(0, 229, 255, 0.1)",
-  danger: "#FF5252",
-  dangerBg: "rgba(255, 82, 82, 0.1)",
-};
+import { useTheme } from "@/hooks/use-theme";
 
 export default function HistoryScreen() {
+  const colors = useTheme();
+  const styles = getStyles(colors);
   const router = useRouter();
   const [entries, setEntries] = useState<HistoryEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -115,13 +105,13 @@ export default function HistoryScreen() {
               </View>
               <View style={styles.statCard}>
                 <Text style={styles.statLabel}>Completed</Text>
-                <Text style={[styles.statValue, { color: COLORS.accent }]}>
+                <Text style={[styles.statValue, { color: colors.accent }]}>
                   {completionCount}
                 </Text>
               </View>
               <View style={styles.statCard}>
                 <Text style={styles.statLabel}>Resets</Text>
-                <Text style={[styles.statValue, { color: COLORS.danger }]}>
+                <Text style={[styles.statValue, { color: "#FF5252" }]}>
                   {resetCount}
                 </Text>
               </View>
@@ -139,7 +129,7 @@ export default function HistoryScreen() {
                 <MaterialIcons
                   name="delete-outline"
                   size={18}
-                  color={COLORS.danger}
+                  color="#FF5252"
                 />
                 <Text style={styles.clearButtonText}>Clear History</Text>
               </Pressable>
@@ -152,22 +142,22 @@ export default function HistoryScreen() {
             <View style={styles.historyCard}>
               <View style={styles.historyRow}>
                 <Text style={styles.historyName}>{item.tasbeehName}</Text>
-                <View
-                  style={[
-                    styles.eventBadge,
-                    isReset ? styles.resetBadge : styles.completeBadge,
-                  ]}
-                >
-                  <Text
+                  <View
                     style={[
-                      styles.eventBadgeText,
-                      isReset
-                        ? { color: COLORS.danger }
-                        : { color: COLORS.accent },
+                      styles.eventBadge,
+                      isReset ? styles.resetBadge : styles.completeBadge,
                     ]}
                   >
-                    {isReset ? "Reset" : "Goal Reached"}
-                  </Text>
+                    <Text
+                      style={[
+                        styles.eventBadgeText,
+                        isReset
+                          ? { color: "#FF5252" }
+                          : { color: colors.accent },
+                      ]}
+                    >
+                      {isReset ? "Reset" : "Goal Reached"}
+                    </Text>
                 </View>
               </View>
 
@@ -176,7 +166,7 @@ export default function HistoryScreen() {
                   <MaterialIcons
                     name="track-changes"
                     size={14}
-                    color={COLORS.textMuted}
+                    color={colors.textSecondary}
                   />
                   <Text style={styles.detailText}>Goal: {item.goal}</Text>
                 </View>
@@ -184,7 +174,7 @@ export default function HistoryScreen() {
                   <MaterialIcons
                     name="touch-app"
                     size={14}
-                    color={COLORS.textMuted}
+                    color={colors.textSecondary}
                   />
                   <Text style={styles.detailText}>
                     Count: {item.countAtEvent}
@@ -197,7 +187,7 @@ export default function HistoryScreen() {
                   <MaterialIcons
                     name="repeat"
                     size={14}
-                    color={COLORS.textMuted}
+                    color={colors.textSecondary}
                   />
                   <Text style={styles.detailText}>Set: {item.currentSet}</Text>
                 </View>
@@ -205,7 +195,7 @@ export default function HistoryScreen() {
                   <MaterialIcons
                     name="done-all"
                     size={14}
-                    color={COLORS.textMuted}
+                    color={colors.textSecondary}
                   />
                   <Text style={styles.detailText}>
                     Completed Sets: {item.completedSets}
@@ -226,7 +216,7 @@ export default function HistoryScreen() {
         }}
         ListEmptyComponent={
           <View style={styles.placeholder}>
-            <MaterialIcons name="history" size={48} color={COLORS.border} />
+            <MaterialIcons name="history" size={48} color={colors.backgroundSelected} />
             <Text style={styles.placeholderText}>
               {isLoading ? "Loading history..." : "No history yet"}
             </Text>
@@ -240,170 +230,175 @@ export default function HistoryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  contentContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: Platform.OS === "android" ? 40 : 20,
-  },
+const getStyles = (colors: any) => {
+  const danger = "#FF5252";
+  const dangerBg = "rgba(255, 82, 82, 0.1)";
 
-  /* Top Bar */
-  topBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingTop: Platform.OS === "android" ? 40 : 10,
-    paddingBottom: 10,
-  },
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    contentContainer: {
+      paddingHorizontal: 20,
+      paddingBottom: Platform.OS === "android" ? 40 : 20,
+    },
 
-  upperLabel: {
-    fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: 2,
-    color: COLORS.accent,
-  },
+    /* Top Bar */
+    topBar: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 20,
+      paddingTop: Platform.OS === "android" ? 40 : 10,
+      paddingBottom: 10,
+    },
 
-  /* Header Section */
-  headerSection: {
-    alignItems: "center",
-    marginBottom: 25,
-  },
-  mainTitle: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: COLORS.textMain,
-    marginBottom: 20,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: COLORS.textMuted,
-    marginBottom: 20,
-  },
+    upperLabel: {
+      fontSize: 12,
+      fontWeight: "700",
+      letterSpacing: 2,
+      color: colors.accent,
+    },
 
-  /* Stats Row */
-  statsRow: {
-    flexDirection: "row",
-    gap: 12,
-    width: "100%",
-    marginBottom: 20,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: COLORS.card,
-    borderRadius: 16,
-    paddingVertical: 15,
-    paddingHorizontal: 10,
-    alignItems: "center",
-    gap: 5,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: COLORS.textMuted,
-    fontWeight: "600",
-  },
-  statValue: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: COLORS.textMain,
-  },
+    /* Header Section */
+    headerSection: {
+      alignItems: "center",
+      marginBottom: 25,
+    },
+    mainTitle: {
+      fontSize: 32,
+      fontWeight: "bold",
+      color: colors.text,
+      marginBottom: 20,
+    },
+    subtitle: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      marginBottom: 20,
+    },
 
-  /* Clear Button */
-  clearButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    alignSelf: "flex-end",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    backgroundColor: COLORS.dangerBg,
-    gap: 6,
-  },
-  clearButtonText: {
-    color: COLORS.danger,
-    fontSize: 12,
-    fontWeight: "700",
-  },
+    /* Stats Row */
+    statsRow: {
+      flexDirection: "row",
+      gap: 12,
+      width: "100%",
+      marginBottom: 20,
+    },
+    statCard: {
+      flex: 1,
+      backgroundColor: colors.backgroundElement,
+      borderRadius: 16,
+      paddingVertical: 15,
+      paddingHorizontal: 10,
+      alignItems: "center",
+      gap: 5,
+    },
+    statLabel: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      fontWeight: "600",
+    },
+    statValue: {
+      fontSize: 24,
+      fontWeight: "bold",
+      color: colors.text,
+    },
 
-  /* History Cards */
-  historyCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: 16,
-    marginBottom: 15,
-    padding: 16,
-  },
-  historyRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-    paddingBottom: 10,
-  },
-  historyName: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: COLORS.textMain,
-  },
-  eventBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  resetBadge: {
-    backgroundColor: COLORS.dangerBg,
-  },
-  completeBadge: {
-    backgroundColor: COLORS.glowBg,
-  },
-  eventBadgeText: {
-    fontSize: 11,
-    fontWeight: "700",
-  },
-  detailsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 8,
-  },
-  detailItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    flex: 1,
-  },
-  detailText: {
-    fontSize: 13,
-    color: COLORS.textMuted,
-  },
-  timestamp: {
-    marginTop: 8,
-    fontSize: 11,
-    color: COLORS.textMuted,
-    textAlign: "right",
-    fontStyle: "italic",
-  },
+    /* Clear Button */
+    clearButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      alignSelf: "flex-end",
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      borderRadius: 20,
+      backgroundColor: dangerBg,
+      gap: 6,
+    },
+    clearButtonText: {
+      color: danger,
+      fontSize: 12,
+      fontWeight: "700",
+    },
 
-  /* Placeholder */
-  placeholder: {
-    borderRadius: 16,
-    paddingVertical: 40,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 12,
-  },
-  placeholderText: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: COLORS.textMain,
-  },
-  placeholderSubtext: {
-    fontSize: 13,
-    color: COLORS.textMuted,
-    textAlign: "center",
-  },
-});
+    /* History Cards */
+    historyCard: {
+      backgroundColor: colors.backgroundElement,
+      borderRadius: 16,
+      marginBottom: 15,
+      padding: 16,
+    },
+    historyRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 12,
+      paddingBottom: 10,
+    },
+    historyName: {
+      fontSize: 18,
+      fontWeight: "bold",
+      color: colors.text,
+    },
+    eventBadge: {
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 12,
+    },
+    resetBadge: {
+      backgroundColor: dangerBg,
+    },
+    completeBadge: {
+      backgroundColor: colors.backgroundSelected,
+    },
+    eventBadgeText: {
+      fontSize: 11,
+      fontWeight: "700",
+    },
+    detailsRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: 8,
+    },
+    detailItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      flex: 1,
+    },
+    detailText: {
+      fontSize: 13,
+      color: colors.textSecondary,
+    },
+    timestamp: {
+      marginTop: 8,
+      fontSize: 11,
+      color: colors.textSecondary,
+      textAlign: "right",
+      fontStyle: "italic",
+    },
+
+    /* Placeholder */
+    placeholder: {
+      borderRadius: 16,
+      paddingVertical: 40,
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 12,
+    },
+    placeholderText: {
+      fontSize: 18,
+      fontWeight: "600",
+      color: colors.text,
+    },
+    placeholderSubtext: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      textAlign: "center",
+    },
+  });
+};

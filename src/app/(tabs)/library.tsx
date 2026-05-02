@@ -46,19 +46,11 @@ const INITIAL_TASBEEH_DATA = [
   },
 ];
 
-// Hardcoded Theme
-const COLORS = {
-  background: "#000",
-  card: "#16191E",
-  border: "#2C3033",
-  buttonBg: "#23272F",
-  accent: "#00E5FF",
-  textMain: "#FFFFFF",
-  textMuted: "#888888",
-  glowBg: "rgba(0, 229, 255, 0.1)",
-};
+import { useTheme } from "@/hooks/use-theme";
 
 export default function LibraryScreen() {
+  const colors = useTheme();
+  const styles = getStyles(colors);
   const router = useRouter();
 
   // State Management
@@ -157,13 +149,13 @@ export default function LibraryScreen() {
           <Ionicons
             name="search"
             size={20}
-            color="#888"
+            color={colors.textSecondary}
             style={styles.searchIcon}
           />
           <TextInput
             style={styles.searchInput}
             placeholder="Search your tasbeeh..."
-            placeholderTextColor="#888"
+            placeholderTextColor={colors.textSecondary}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
@@ -177,7 +169,7 @@ export default function LibraryScreen() {
                 {editingId ? "Edit Tasbeeh" : "Create New Tasbeeh"}
               </ThemedText>
               <Pressable onPress={cancelForm}>
-                <MaterialIcons name="close" size={24} color="#888" />
+                <MaterialIcons name="close" size={24} color={colors.textSecondary} />
               </Pressable>
             </View>
 
@@ -185,7 +177,7 @@ export default function LibraryScreen() {
             <TextInput
               style={styles.formInput}
               placeholder="e.g. SubhanAllah"
-              placeholderTextColor="#666"
+              placeholderTextColor={colors.textSecondary}
               value={newTitle}
               onChangeText={setNewTitle}
             />
@@ -194,7 +186,7 @@ export default function LibraryScreen() {
             <TextInput
               style={styles.formInput}
               placeholder="e.g. 33 or 100"
-              placeholderTextColor="#666"
+              placeholderTextColor={colors.textSecondary}
               value={newCount}
               onChangeText={setNewCount}
               keyboardType="numeric"
@@ -251,7 +243,7 @@ export default function LibraryScreen() {
                     <MaterialIcons
                       name="edit"
                       size={22}
-                      color={COLORS.accent}
+                      color={colors.accent}
                     />
                   </Pressable>
                 </View>
@@ -263,7 +255,7 @@ export default function LibraryScreen() {
                   <ThemedText style={styles.startJourneyText}>
                     START JOURNEY
                   </ThemedText>
-                  <MaterialIcons name="arrow-forward" size={18} color="#000" />
+                  <MaterialIcons name="arrow-forward" size={18} color={colors.background} />
                 </Pressable>
               </View>
             </View>
@@ -287,7 +279,7 @@ export default function LibraryScreen() {
               setIsFormVisible(true);
             }}
           >
-            <MaterialIcons name="add" size={24} color="#000" />
+            <MaterialIcons name="add" size={24} color={colors.background} />
           </Pressable>
         </View>
       )}
@@ -295,10 +287,10 @@ export default function LibraryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: colors.background,
   },
   topBar: {
     flexDirection: "row",
@@ -313,7 +305,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "700",
     letterSpacing: 2,
-    color: COLORS.accent,
+    color: colors.accent,
   },
 
   scrollContent: {
@@ -326,23 +318,23 @@ const styles = StyleSheet.create({
   mainTitle: {
     fontSize: 32,
     fontWeight: "bold",
-    color: COLORS.textMain,
+    color: colors.text,
     marginBottom: 20,
   },
   subtitle: {
     fontSize: 14,
-    color: COLORS.textMuted,
+    color: colors.textSecondary,
     marginBottom: 20,
   },
 
   subLabel: {
-    color: COLORS.accent,
+    color: colors.accent,
     fontSize: 12,
     fontWeight: "700",
     letterSpacing: 2,
   },
   mainHeading: {
-    color: "#fff",
+    color: colors.text,
     fontSize: 32,
     fontWeight: "bold",
     marginTop: 5,
@@ -351,7 +343,7 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#16191E",
+    backgroundColor: colors.backgroundElement,
     borderRadius: 24,
     paddingHorizontal: 15,
     height: 50,
@@ -362,18 +354,18 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    color: "#fff",
+    color: colors.text,
     fontSize: 16,
   },
 
   /* Inline Form Styles */
   inlineFormContainer: {
-    backgroundColor: "#16191E",
+    backgroundColor: colors.backgroundElement,
     borderRadius: 20,
     padding: 20,
     marginBottom: 25,
     borderWidth: 1,
-    borderColor: "#2C3033",
+    borderColor: colors.backgroundSelected,
   },
   formHeader: {
     flexDirection: "row",
@@ -382,24 +374,24 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   formTitle: {
-    color: COLORS.accent,
+    color: colors.accent,
     fontSize: 18,
     fontWeight: "bold",
   },
   formInputLabel: {
-    color: "#fff",
+    color: colors.text,
     fontSize: 14,
     fontWeight: "600",
     marginBottom: 8,
   },
   formInput: {
-    backgroundColor: "#23272F",
+    backgroundColor: colors.backgroundSelected,
     borderRadius: 12,
     padding: 15,
-    color: "#fff",
+    color: colors.text,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: "#2C3033",
+    borderColor: colors.backgroundSelected,
     marginBottom: 15,
   },
   formActionsGroup: {
@@ -409,25 +401,25 @@ const styles = StyleSheet.create({
   },
   formCancelBtn: {
     flex: 1,
-    backgroundColor: "#23272F",
+    backgroundColor: colors.backgroundSelected,
     padding: 15,
     borderRadius: 12,
     alignItems: "center",
   },
   formCancelText: {
-    color: "#fff",
+    color: colors.text,
     fontSize: 14,
     fontWeight: "600",
   },
   formSaveBtn: {
     flex: 1,
-    backgroundColor: COLORS.accent,
+    backgroundColor: colors.accent,
     padding: 15,
     borderRadius: 12,
     alignItems: "center",
   },
   formSaveText: {
-    color: "#000",
+    color: colors.background,
     fontSize: 14,
     fontWeight: "700",
   },
@@ -437,7 +429,7 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   card: {
-    backgroundColor: "#16191E",
+    backgroundColor: colors.backgroundElement,
     borderRadius: 20,
     padding: 20,
   },
@@ -448,29 +440,29 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   goalPill: {
-    backgroundColor: "rgba(0, 229, 255, 0.1)",
+    backgroundColor: colors.backgroundSelected,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 12,
   },
   goalText: {
-    color: COLORS.accent,
+    color: colors.accent,
     fontSize: 12,
     fontWeight: "600",
   },
   arabicText: {
-    color: COLORS.accent,
+    color: colors.accent,
     fontSize: 26,
     fontWeight: "bold",
   },
   englishTitle: {
-    color: "#fff",
+    color: colors.text,
     fontSize: 20,
     fontWeight: "bold",
     marginBottom: 4,
   },
   translationText: {
-    color: "#888",
+    color: colors.textSecondary,
     fontSize: 14,
     marginBottom: 20,
   },
@@ -480,7 +472,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 10,
     borderTopWidth: 1,
-    borderTopColor: "#2C3033",
+    borderTopColor: colors.backgroundSelected,
     paddingTop: 15,
   },
   iconActionGroup: {
@@ -493,20 +485,20 @@ const styles = StyleSheet.create({
   startJourneyBtn: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: COLORS.accent,
+    backgroundColor: colors.accent,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 12,
     gap: 8,
   },
   startJourneyText: {
-    color: "#000",
+    color: colors.background,
     fontSize: 12,
     fontWeight: "700",
     letterSpacing: 1,
   },
   emptyText: {
-    color: "#888",
+    color: colors.textSecondary,
     textAlign: "center",
     marginTop: 20,
   },
@@ -520,20 +512,20 @@ const styles = StyleSheet.create({
   },
   createButton: {
     flexDirection: "row",
-    backgroundColor: COLORS.accent,
+    backgroundColor: colors.accent,
     paddingHorizontal: 15,
     paddingVertical: 15,
     borderRadius: 30,
     alignItems: "center",
     gap: 8,
-    shadowColor: COLORS.background,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.2,
     shadowRadius: 12,
     elevation: 10,
   },
   createButtonText: {
-    color: "#000",
+    color: colors.background,
     fontSize: 16,
     fontWeight: "700",
   },
