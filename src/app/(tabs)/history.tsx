@@ -80,7 +80,7 @@ export default function HistoryScreen() {
       {/* Top Header Row */}
       <View style={styles.topBar}>
         <View style={{ width: 24 }} /> {/* Spacer to center title */}
-        <Text style={styles.upperLabel}>YOUR PROGRESS</Text>
+        <Text style={styles.upperLabel}>﷽</Text>
         <View style={{ width: 24 }} /> {/* Spacer to center title */}
       </View>
 
@@ -142,22 +142,22 @@ export default function HistoryScreen() {
             <View style={styles.historyCard}>
               <View style={styles.historyRow}>
                 <Text style={styles.historyName}>{item.tasbeehName}</Text>
-                  <View
+                <View
+                  style={[
+                    styles.eventBadge,
+                    isReset ? styles.resetBadge : styles.completeBadge,
+                  ]}
+                >
+                  <Text
                     style={[
-                      styles.eventBadge,
-                      isReset ? styles.resetBadge : styles.completeBadge,
+                      styles.eventBadgeText,
+                      isReset
+                        ? { color: "#FF5252" }
+                        : { color: colors.accent },
                     ]}
                   >
-                    <Text
-                      style={[
-                        styles.eventBadgeText,
-                        isReset
-                          ? { color: "#FF5252" }
-                          : { color: colors.accent },
-                      ]}
-                    >
-                      {isReset ? "Reset" : "Goal Reached"}
-                    </Text>
+                    {isReset ? "Reset" : "Goal Reached"}
+                  </Text>
                 </View>
               </View>
 
@@ -258,7 +258,7 @@ const getStyles = (colors: any) => {
     },
 
     upperLabel: {
-      fontSize: 12,
+      fontSize: 25,
       fontWeight: "700",
       letterSpacing: 2,
       color: colors.accent,

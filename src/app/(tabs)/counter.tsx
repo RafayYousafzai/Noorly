@@ -37,7 +37,7 @@ function CircleProgressDisplay({
         }
       } catch (e) {
         // Fallback if the specific native tick isn't available
-        Haptics.selectionAsync().catch(() => {});
+        Haptics.selectionAsync().catch(() => { });
       }
     }
     onPress?.();
@@ -91,7 +91,7 @@ function IconButton({
         } else {
           await Haptics.selectionAsync();
         }
-      } catch (e) {}
+      } catch (e) { }
     }
     onPress?.();
   };
@@ -160,7 +160,7 @@ export default function CounterScreen() {
       <View style={styles.headerSection}>
         <View style={styles.topBar}>
           <View style={{ width: 24 }} /> {/* Spacer to center title */}
-          <Text style={styles.upperLabel}>CURRENT FOCUS</Text>
+          <Text style={styles.upperLabel}>﷽</Text>
           <View style={{ width: 24 }} /> {/* Spacer to center title */}
         </View>
 
@@ -255,7 +255,7 @@ const getStyles = (colors: any) => StyleSheet.create({
     marginBottom: 15,
   },
   upperLabel: {
-    fontSize: 12,
+    fontSize: 25,
     fontWeight: "700",
     letterSpacing: 2,
     color: colors.accent,

@@ -1,4 +1,5 @@
 import { useCounter } from "@/context/CounterContext";
+import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -11,7 +12,6 @@ import {
   Text,
   View,
 } from "react-native";
-import * as Haptics from "expo-haptics";
 
 import { useTheme } from "@/hooks/use-theme";
 
@@ -30,7 +30,7 @@ export default function FullscreenCounterScreen() {
           await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         }
       } catch (e) {
-        Haptics.selectionAsync().catch(() => {});
+        Haptics.selectionAsync().catch(() => { });
       }
     }
     handleIncrement();
@@ -39,9 +39,9 @@ export default function FullscreenCounterScreen() {
   const handleMinimize = () => {
     if (hapticEnabled) {
       if (Platform.OS === "android") {
-        Haptics.performAndroidHapticsAsync(Haptics.AndroidHaptics.Keyboard_Tap).catch(() => {});
+        Haptics.performAndroidHapticsAsync(Haptics.AndroidHaptics.Keyboard_Tap).catch(() => { });
       } else {
-        Haptics.selectionAsync().catch(() => {});
+        Haptics.selectionAsync().catch(() => { });
       }
     }
     router.back();
@@ -78,7 +78,8 @@ export default function FullscreenCounterScreen() {
 const getStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: "#000",
+    // backgroundColor: colors.background,
   },
   safeArea: {
     flex: 1,

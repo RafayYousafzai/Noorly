@@ -130,7 +130,7 @@ export default function LibraryScreen() {
       {/* Updated Unified Header */}
       <View style={styles.topBar}>
         <View style={{ width: 24 }} />{" "}
-        <Text style={styles.upperLabel}>YOUR SANCTUARY</Text>
+        <Text style={styles.upperLabel}>﷽</Text>
         <View style={{ width: 24 }} />{" "}
         {/* Spacer to keep title perfectly centered */}
       </View>
@@ -302,7 +302,7 @@ const getStyles = (colors: any) => StyleSheet.create({
   },
 
   upperLabel: {
-    fontSize: 12,
+    fontSize: 25,
     fontWeight: "700",
     letterSpacing: 2,
     color: colors.accent,

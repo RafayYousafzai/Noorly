@@ -1,49 +1,57 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
-
-import '@/global.css';
-
-import { Platform, PlatformColor } from 'react-native';
+import { Color } from 'expo-router';
+import { Platform } from 'react-native';
 
 export const Colors = {
   light: {
     text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
+    background: Platform.select({
+      android: (Platform.Version as number) >= 31 ? Color.android.system_neutral1_10 : '#ffffff',
+      default: '#ffffff',
+    }),
+    backgroundElement: Platform.select({
+      android: (Platform.Version as number) >= 31 ? Color.android.system_neutral1_50 : '#F0F0F3',
+      default: '#F0F0F3',
+    }),
+    backgroundSelected: Platform.select({
+      android: (Platform.Version as number) >= 31 ? Color.android.system_neutral1_100 : '#E0E1E6',
+      default: '#E0E1E6',
+    }),
     textSecondary: '#60646C',
-    accent: Platform.OS === 'android' && Platform.Version >= 31 
-      ? PlatformColor('@android:color/system_accent1_500') 
-      : '#0a7ea4',
+    accent: Platform.select({
+      android: (Platform.Version as number) >= 31 ? Color.android.system_accent1_500 : '#0a7ea4',
+      default: '#0a7ea4',
+    }),
   },
   dark: {
     text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
+    background: Platform.select({
+      android: (Platform.Version as number) >= 31 ? Color.android.system_neutral1_900 : '#000000',
+      default: '#000000',
+    }),
+    backgroundElement: Platform.select({
+      android: (Platform.Version as number) >= 31 ? Color.android.system_neutral1_800 : '#212225',
+      default: '#212225',
+    }),
+    backgroundSelected: Platform.select({
+      android: (Platform.Version as number) >= 31 ? Color.android.system_neutral1_700 : '#2E3135',
+      default: '#2E3135',
+    }),
     textSecondary: '#B0B4BA',
-    accent: Platform.OS === 'android' && Platform.Version >= 31 
-      ? PlatformColor('@android:color/system_accent1_200') 
-      : '#4A98E9',
+    accent: Platform.select({
+      android: (Platform.Version as number) >= 31 ? Color.android.system_accent1_200 : '#4A98E9',
+      default: '#4A98E9',
+    }),
   },
 } as const;
 
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
-
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
     sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
     serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
     rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
     mono: 'ui-monospace',
   },
-  default: {
+  android: { // <-- Add this explicitly
     sans: 'normal',
     serif: 'serif',
     rounded: 'normal',
@@ -55,17 +63,10 @@ export const Fonts = Platform.select({
     rounded: 'var(--font-rounded)',
     mono: 'var(--font-mono)',
   },
+  default: {
+    sans: 'normal',
+    serif: 'serif',
+    rounded: 'normal',
+    mono: 'monospace',
+  },
 });
-
-export const Spacing = {
-  half: 2,
-  one: 4,
-  two: 8,
-  three: 16,
-  four: 24,
-  five: 32,
-  six: 64,
-} as const;
-
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
-export const MaxContentWidth = 800;
