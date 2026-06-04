@@ -19,7 +19,8 @@ function CircleProgressDisplay({
   goal,
   onPress,
   hapticEnabled,
-  setNumber,
+  isGoalReached,
+  pressAgainToReset,
   colors,
 }: any) {
   const styles = getStyles(colors);
@@ -57,17 +58,25 @@ function CircleProgressDisplay({
           style={[styles.circleProgress, { height: `${progress * 100}%` }]}
         />
 
-        {/* Top Right Set Indicator */}
-        {setNumber && (
-          <View style={styles.setIndicator}>
-            <Text style={styles.setIndicatorText}>Set {setNumber}</Text>
-          </View>
-        )}
-
         {/* Center Content */}
         <View style={styles.circleCenterContent}>
-          <Text style={styles.counterNumber}>{count}</Text>
-          <Text style={styles.counterLabel}>REPS</Text>
+          {isGoalReached ? (
+            pressAgainToReset ? (
+              <View style={{ alignItems: "center", paddingHorizontal: 25 }}>
+                <Text style={styles.promptText}>Press again to start new</Text>
+              </View>
+            ) : (
+              <View style={{ alignItems: "center" }}>
+                <Text style={styles.completedText}>Completed!</Text>
+                <Text style={styles.completedSubtext}>Tap to reset</Text>
+              </View>
+            )
+          ) : (
+            <>
+              <Text style={styles.counterNumber}>{count}</Text>
+              <Text style={styles.counterLabel}>REPS</Text>
+            </>
+          )}
         </View>
       </View>
     </Pressable>
@@ -132,9 +141,9 @@ export default function CounterScreen() {
     count,
     goal,
     tasbeehName,
-    currentSet,
     isGoalReached,
     hapticEnabled,
+    pressAgainToReset,
     setGoal,
     setTasbeehName,
     handleIncrement,
@@ -176,7 +185,8 @@ export default function CounterScreen() {
           goal={goal}
           onPress={handleIncrement}
           hapticEnabled={hapticEnabled}
-          setNumber={currentSet}
+          isGoalReached={isGoalReached}
+          pressAgainToReset={pressAgainToReset}
           colors={colors}
         />
       </View>
@@ -305,22 +315,31 @@ const getStyles = (colors: any) => StyleSheet.create({
     backgroundColor: colors.backgroundSelected, // Subtle fill color
     borderRadius: 200,
   },
-  setIndicator: {
-    position: "absolute",
-    top: 25,
-    backgroundColor: colors.backgroundSelected,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-  },
-  setIndicatorText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: colors.accent,
-  },
   circleCenterContent: {
     alignItems: "center",
     justifyContent: "center",
+  },
+  completedText: {
+    fontSize: 26,
+    fontWeight: "bold",
+    color: colors.accent,
+    marginTop: 10,
+    textAlign: "center",
+  },
+  completedSubtext: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 5,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    textAlign: "center",
+  },
+  promptText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: colors.accent,
+    marginTop: 10,
+    textAlign: "center",
   },
   counterNumber: {
     fontSize: 84,

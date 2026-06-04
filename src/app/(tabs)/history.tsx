@@ -1,5 +1,5 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect } from "expo-router/react-navigation";
 import { useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
@@ -182,26 +182,6 @@ export default function HistoryScreen() {
                 </View>
               </View>
 
-              <View style={styles.detailsRow}>
-                <View style={styles.detailItem}>
-                  <MaterialIcons
-                    name="repeat"
-                    size={14}
-                    color={colors.textSecondary}
-                  />
-                  <Text style={styles.detailText}>Set: {item.currentSet}</Text>
-                </View>
-                <View style={styles.detailItem}>
-                  <MaterialIcons
-                    name="done-all"
-                    size={14}
-                    color={colors.textSecondary}
-                  />
-                  <Text style={styles.detailText}>
-                    Completed Sets: {item.completedSets}
-                  </Text>
-                </View>
-              </View>
 
               <Text style={styles.timestamp}>
                 {new Date(item.createdAt).toLocaleString([], {

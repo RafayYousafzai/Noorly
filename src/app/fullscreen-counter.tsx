@@ -19,9 +19,41 @@ export default function FullscreenCounterScreen() {
   const colors = useTheme();
   const styles = getStyles(colors);
   const router = useRouter();
-  const { count, handleIncrement, goal, currentSet, hapticEnabled } = useCounter();
+  const {
+    count,
+    handleIncrement,
+    goal,
+    hapticEnabled,
+    isGoalReached,
+    pressAgainToReset,
+    handleStartNewCount,
+    setPressAgainToReset,
+  } = useCounter();
 
   const handlePress = async () => {
+    if (isGoalReached) {
+      if (pressAgainToReset) {
+        if (hapticEnabled) {
+          try {
+            if (Platform.OS === "android") {
+              await Haptics.performAndroidHapticsAsync(Haptics.AndroidHaptics.Keyboard_Tap);
+            } else {
+              await Haptics.selectionAsync();
+            }
+          } catch {}
+        }
+        await handleStartNewCount();
+      } else {
+        setPressAgainToReset(true);
+        if (hapticEnabled) {
+          try {
+            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          } catch {}
+        }
+      }
+      return;
+    }
+
     if (hapticEnabled) {
       try {
         if (Platform.OS === "android") {
@@ -61,14 +93,26 @@ export default function FullscreenCounterScreen() {
         </View>
 
         <View style={styles.centerContainer}>
-          <Text style={styles.countText}>{count}</Text>
-
-          {/* Subtle goal and sets indicator */}
-          <View style={styles.subtleInfoContainer}>
-            <Text style={styles.subtleText}>Set {currentSet}</Text>
-            <Text style={styles.subtleSeparator}>•</Text>
-            <Text style={styles.subtleText}>Goal {goal}</Text>
-          </View>
+          {isGoalReached ? (
+            pressAgainToReset ? (
+              <View style={{ alignItems: "center", paddingHorizontal: 30 }}>
+                <Text style={styles.promptText}>Press again to start new</Text>
+              </View>
+            ) : (
+              <View style={{ alignItems: "center", paddingHorizontal: 30 }}>
+                <Text style={styles.completedText}>Completed!</Text>
+                <Text style={styles.completedSubtext}>Tap to reset</Text>
+              </View>
+            )
+          ) : (
+            <>
+              <Text style={styles.countText}>{count}</Text>
+              {/* Subtle goal indicator */}
+              <View style={styles.subtleInfoContainer}>
+                <Text style={styles.subtleText}>Goal {goal}</Text>
+              </View>
+            </>
+          )}
         </View>
       </SafeAreaView>
     </Pressable>
@@ -102,6 +146,28 @@ const getStyles = (colors: any) => StyleSheet.create({
     alignItems: "center",
     marginTop: -160,
   },
+  completedText: {
+    fontSize: 42,
+    fontWeight: "bold",
+    color: colors.accent,
+    marginTop: 20,
+    textAlign: "center",
+  },
+  completedSubtext: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    marginTop: 10,
+    textTransform: "uppercase",
+    letterSpacing: 2,
+    textAlign: "center",
+  },
+  promptText: {
+    fontSize: 28,
+    fontWeight: "600",
+    color: colors.accent,
+    marginTop: 20,
+    textAlign: "center",
+  },
   countText: {
     fontSize: 140,
     fontWeight: "bold",
@@ -120,10 +186,5 @@ const getStyles = (colors: any) => StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     letterSpacing: 1,
-  },
-  subtleSeparator: {
-    color: colors.textSecondary,
-    fontSize: 14,
-    marginHorizontal: 10,
   },
 });

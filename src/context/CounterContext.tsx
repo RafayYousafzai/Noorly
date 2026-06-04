@@ -15,12 +15,14 @@ type CounterContextType = {
   goal: number;
   tasbeehName: string;
   hapticEnabled: boolean;
+  pressAgainToReset: boolean;
   setGoal: (goal: number) => void;
   setTasbeehName: (name: string) => void;
   handleIncrement: () => Promise<void>;
   handleStartNewCount: () => Promise<void>;
   handleReset: () => Promise<void>;
   handleHapticToggle: () => Promise<void>;
+  setPressAgainToReset: (val: boolean) => void;
 };
 
 const CounterContext = createContext<CounterContextType | undefined>(undefined);
@@ -31,6 +33,7 @@ export function CounterProvider({ children }: { children: React.ReactNode }) {
   const [currentSet, setCurrentSet] = useState(1);
   const [completedSets, setCompletedSets] = useState(0);
   const [isGoalReached, setIsGoalReached] = useState(false);
+  const [pressAgainToReset, setPressAgainToReset] = useState(false);
   const [goal, setGoal] = useState(100);
   const [tasbeehName, setTasbeehName] = useState("SubhanAllah");
   const [isReady, setIsReady] = useState(false);
@@ -46,7 +49,7 @@ export function CounterProvider({ children }: { children: React.ReactNode }) {
           setGoal(saved.goal);
           setTasbeehName(saved.tasbeehName);
           setHapticEnabled(saved.hapticEnabled);
-          setIsGoalReached(saved.completedSets > 0 && saved.count === 0);
+          setIsGoalReached(saved.count >= saved.goal);
         }
       } catch (e) {}
       setIsReady(true);
@@ -58,30 +61,28 @@ export function CounterProvider({ children }: { children: React.ReactNode }) {
     if (!isReady) return;
     saveActiveState({
       count,
-      currentSet,
-      completedSets,
+      currentSet: 1,
+      completedSets: count >= goal ? 1 : 0,
       goal,
       tasbeehName,
       hapticEnabled,
     }).catch(() => {});
   }, [
     count,
-    currentSet,
-    completedSets,
     goal,
     tasbeehName,
     hapticEnabled,
     isReady,
   ]);
 
-  const addToHistory = async (eventType: "manual-reset" | "goal-complete") => {
+  const addToHistory = async (eventType: "manual-reset" | "goal-complete", finalCount = count) => {
     try {
       await addHistoryEntry({
         tasbeehName,
         goal,
-        countAtEvent: count,
-        currentSet,
-        completedSets,
+        countAtEvent: finalCount,
+        currentSet: 1,
+        completedSets: eventType === "goal-complete" ? 1 : 0,
         eventType,
       });
     } catch {
@@ -90,51 +91,63 @@ export function CounterProvider({ children }: { children: React.ReactNode }) {
   };
 
   const handleIncrement = async () => {
-    if (isGoalReached && count === 0) {
-      // User started the next set, so switch action button back to Reset.
-      setIsGoalReached(false);
+    if (isGoalReached) {
+      if (pressAgainToReset) {
+        await handleStartNewCount();
+      } else {
+        setPressAgainToReset(true);
+        if (hapticEnabled) {
+          try {
+            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          } catch (e) {}
+        }
+      }
+      return;
     }
 
     const newCount = count + 1;
     if (newCount >= goal) {
-      setCount(0);
-      setCompletedSets((prev) => prev + 1);
-      setCurrentSet((prev) => prev + 1);
+      setCount(goal);
       setIsGoalReached(true);
 
       if (hapticEnabled) {
         try {
           if (Platform.OS === "android") {
             await Haptics.performAndroidHapticsAsync(Haptics.AndroidHaptics.Confirm);
+            setTimeout(async () => {
+              try {
+                await Haptics.performAndroidHapticsAsync(Haptics.AndroidHaptics.Clock_Tick);
+              } catch {}
+            }, 150);
           } else {
             await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            setTimeout(async () => {
+              try {
+                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              } catch {}
+            }, 200);
           }
         } catch (e) {}
       }
+
+      await addToHistory("goal-complete", goal);
     } else {
       setCount(newCount);
     }
   };
 
   const handleStartNewCount = async () => {
-    const hasProgress = count > 0 || completedSets > 0;
-    if (hasProgress) {
-      const eventType = completedSets > 0 ? "goal-complete" : "manual-reset";
-      try {
-        await addToHistory(eventType);
-      } catch {}
-    }
-
     setCount(0);
     setCurrentSet(1);
     setCompletedSets(0);
     setIsGoalReached(false);
+    setPressAgainToReset(false);
   };
 
   const handleReset = async () => {
     Alert.alert(
       "Reset Counter",
-      "Are you sure you want to reset the current set?",
+      "Are you sure you want to reset the counter?",
       [
         { text: "Cancel", style: "cancel" },
         {
@@ -142,8 +155,9 @@ export function CounterProvider({ children }: { children: React.ReactNode }) {
           style: "destructive",
           onPress: async () => {
             setIsGoalReached(false);
-            if (count > 0 || completedSets > 0) {
-              await addToHistory("manual-reset");
+            setPressAgainToReset(false);
+            if (count > 0) {
+              await addToHistory("manual-reset", count);
             }
             setCount(0);
             setCurrentSet(1);
@@ -177,12 +191,14 @@ export function CounterProvider({ children }: { children: React.ReactNode }) {
         goal,
         tasbeehName,
         hapticEnabled,
+        pressAgainToReset,
         setGoal,
         setTasbeehName,
         handleIncrement,
         handleStartNewCount,
         handleReset,
         handleHapticToggle,
+        setPressAgainToReset,
       }}
     >
       {children}

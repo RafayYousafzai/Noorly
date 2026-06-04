@@ -2,11 +2,11 @@ import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
-} from "@react-navigation/native";
+} from "expo-router/react-navigation";
 import { Stack } from "expo-router";
 import React, { useEffect } from "react";
 import { useColorScheme, Platform } from "react-native";
-import * as NavigationBar from "expo-navigation-bar";
+import { NavigationBar } from "expo-navigation-bar";
 
 import { AnimatedSplashOverlay } from "@/components/animated-icon";
 import { CounterProvider } from "@/context/CounterContext";
@@ -16,15 +16,10 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
   const theme = useTheme();
 
-  useEffect(() => {
-    if (Platform.OS === "android") {
-      NavigationBar.setBackgroundColorAsync(theme.background);
-      NavigationBar.setButtonStyleAsync(colorScheme === "dark" ? "light" : "dark");
-    }
-  }, [colorScheme, theme]);
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <CounterProvider>
+        {Platform.OS === "android" && <NavigationBar style="auto" />}
         <AnimatedSplashOverlay />
         <Stack screenOptions={{ headerShown: false, animation: "none" }}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
